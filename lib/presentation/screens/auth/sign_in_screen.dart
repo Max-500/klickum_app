@@ -3,18 +3,15 @@ import 'package:klicum/config/style/app_style.dart';
 import '../../widgets/widgets.dart';
 
 // ignore: must_be_immutable
-class SignUpScreen extends StatelessWidget {
+class SignInScreen extends StatelessWidget {
   final usernameController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneController = TextEditingController();
   final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
-  
+
   final _formKey = GlobalKey<FormState>();
 
   bool _autoValidate = false;
 
-  SignUpScreen({super.key});
+  SignInScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,29 +20,29 @@ class SignUpScreen extends StatelessWidget {
 
     final titleStyle = Theme.of(context).textTheme.titleLarge ?? const TextStyle();
     final label = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
-    
+
     return Scaffold(
       body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
         onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
         child: Stack(
           children: [
             const SignFancyBackground(),
-        
+
             Positioned(
               left: screenWidth * 0.05,
               right: screenWidth * 0.05,
               top: screenHeight * 0.1,
-              child: AutoWelcome(subtitle: 'Únete a Nosotros')
+              child: AutoWelcome(subtitle: '¡Bienvenido!')
             ),
-        
+
             Positioned(
               top: screenHeight * 0.25,
               child: Container(
                 width: screenWidth,
                 alignment: Alignment.center,
                 child: Text(
-                  'Crear Cuenta', 
+                  'Iniciar Sesión', 
                   style: titleStyle.copyWith(
                     color: Colors.white, 
                     fontWeight: FontWeight.w600
@@ -53,7 +50,7 @@ class SignUpScreen extends StatelessWidget {
                 )
               )
             ),
-        
+
             Positioned(
               left: screenWidth * 0.1,
               right: screenWidth * 0.1,
@@ -88,39 +85,6 @@ class SignUpScreen extends StatelessWidget {
                       const SizedBox(height: 20),
         
                       InputField(
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-
-                          if (text.isEmpty) return 'Este campo es obligatorio';
-                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(text)) return 'Ingresa un correo válido';
-
-                          return null;
-                        },
-                        autoValidateMode: true, 
-                        labelText: 'Correo Electronico '
-                      ),
-                      const SizedBox(height: 20),
-
-                      InputField(
-                        controller: phoneController,
-                        keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-
-                          if (text.isEmpty) return 'Este campo es obligatorio';
-                          if (!RegExp(r'^\+?\d+$').hasMatch(text)) return 'Solo se permiten números';
-                          if (text.length < 10 || text.length > 15) return 'Ingresa un teléfono válido';
-
-                          return null;
-                        },
-                        autoValidateMode: _autoValidate, 
-                        labelText: 'Telefono '
-                      ),
-                      const SizedBox(height: 20),
-
-                      InputField(
                         controller: passwordController,
                         isPassword: true,
                         keyboardType: TextInputType.visiblePassword,
@@ -135,19 +99,6 @@ class SignUpScreen extends StatelessWidget {
                         },
                         autoValidateMode: _autoValidate, 
                         labelText: 'Contraseña '
-                      ),
-                      const SizedBox(height: 20),
-
-                      InputField(
-                        controller: confirmPasswordController,
-                        isPassword: true,
-                        keyboardType: TextInputType.visiblePassword,
-                        validator: (value) {
-                          if (passwordController.text != confirmPasswordController.text) return 'Las contaseñas no coinciden';
-                          return null;
-                        },
-                        autoValidateMode: _autoValidate, 
-                        labelText: 'Confirmar Contraseña '
                       ),
                       const SizedBox(height: 20),
 
@@ -175,7 +126,7 @@ class SignUpScreen extends StatelessWidget {
                             )
                           ),
                           child: Text(
-                            'Registrarse', 
+                            'Iniciar Sesión', 
                             style: label.copyWith(
                               fontWeight: FontWeight.bold
                             )
@@ -186,16 +137,15 @@ class SignUpScreen extends StatelessWidget {
                       const SizedBox(height: 10,),
         
                       ActionText(
-                        prefix: '¿Ya tienes una cuenta?', 
-                        action: 'Ingresa', 
-                        onActionTap: () => Navigator.pushReplacementNamed(context, '/sign-in')
+                        prefix: '¿No tienes una cuenta?', 
+                        action: 'Registrate', 
+                        onActionTap: () => Navigator.pushNamed(context, '/sign-up')
                       )
                     ]
                   )
                 )
               )
             )
-        
           ]
         )
       )
