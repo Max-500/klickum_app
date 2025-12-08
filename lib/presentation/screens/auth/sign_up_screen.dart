@@ -22,13 +22,8 @@ class SignUpScreen extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final TextStyle titleStyle = Theme.of(context).textTheme.titleLarge ?? const TextStyle();
-    final TextStyle subtitleStyle = Theme.of(context).textTheme.titleMedium ?? const TextStyle();
-
-    final TextStyle label = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
-
-    final double baseSize = titleStyle.fontSize ?? screenHeight * 0.05;
-    final double textHeight = baseSize * (titleStyle.height ?? 1.2);
+    final titleStyle = Theme.of(context).textTheme.titleLarge ?? const TextStyle();
+    final label = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
     
     return Scaffold(
       body: GestureDetector(
@@ -42,59 +37,7 @@ class SignUpScreen extends StatelessWidget {
               left: screenWidth * 0.05,
               right: screenWidth * 0.05,
               top: screenHeight * 0.1,
-              bottom: 0,
-              child: SingleChildScrollView(
-                child: Container(
-                  alignment: Alignment.center,
-                  width: screenWidth * 0.9,
-                  constraints: BoxConstraints(minHeight: screenHeight * 0.1),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Color.fromRGBO(8, 13, 0, 0.75)),
-                    color: Color.fromRGBO(8, 13, 0, 1)
-                  ), 
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                        
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Baseline(
-                          baseline: textHeight * 0.85,
-                          baselineType: TextBaseline.alphabetic,
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            height: textHeight * 1.15,
-                            fit: BoxFit.contain,
-                          )
-                        ),
-                        
-                        const SizedBox(width: 10),
-                        
-                        Text(
-                          'Klickum',
-                          style: titleStyle.copyWith(
-                            color: AppStyle.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          )
-                        )
-                      ]
-                    ),
-                        
-                    Text(
-                        'Unete a nosotros',
-                        style: subtitleStyle.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w200
-                        )
-                      )
-                    ]
-                  )
-                ),
-              )
+              child: AutoWelcome(subtitle: 'Únete a Nosotros')
             ),
         
             Positioned(
