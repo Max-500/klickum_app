@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:klicum/config/style/app_style.dart';
 import '../../widgets/widgets.dart';
 
 // ignore: must_be_immutable
 class SignUpScreen extends StatelessWidget {
+  static const String name = '/sign-up';
+
   final usernameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
@@ -188,7 +191,7 @@ class SignUpScreen extends StatelessWidget {
                       ActionText(
                         prefix: '¿Ya tienes una cuenta?', 
                         action: 'Ingresa', 
-                        onActionTap: () => Navigator.pushReplacementNamed(context, '/sign-in')
+                        onActionTap: () => context.pop()
                       )
                     ]
                   )

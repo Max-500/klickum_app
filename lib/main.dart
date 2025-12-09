@@ -11,16 +11,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Klickum',
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: AppStyle.primaryColor
+        colorSchemeSeed: AppStyle.primaryColor,
+        scaffoldBackgroundColor: AppStyle.backgroundColor
       ),
-      routes: AppRouter.routes,
-      onGenerateRoute: AppRouter.onGenerateRoute,
-      initialRoute: AppRouter.initialRoute,
+      routerConfig: getRouter()
     );
   }
 }
