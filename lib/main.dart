@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'Klickum',
       theme: ThemeData(
         useMaterial3: true,
+        fontFamily: 'PublicSans',
         colorSchemeSeed: AppStyle.primaryColor,
         scaffoldBackgroundColor: AppStyle.backgroundColor
       ),
