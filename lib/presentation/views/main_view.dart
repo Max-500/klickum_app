@@ -19,7 +19,7 @@ class MainView extends StatelessWidget {
             const FancyBackground(),
 
             Positioned(
-              top: screenHeight * 0.075,
+              top: screenHeight * 0.05,
               child: SizedBox(
                 width: screenWidth,
                 child: Center(
