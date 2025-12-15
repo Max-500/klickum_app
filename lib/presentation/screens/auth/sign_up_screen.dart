@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/config/style/app_style.dart';
+import 'package:klicum/presentation/providers/auth_provider.dart';
 import '../../widgets/widgets.dart';
 
 // ignore: must_be_immutable
-class SignUpScreen extends StatelessWidget {
+class SignUpScreen extends ConsumerWidget {
   static const String name = '/sign-up';
 
   final usernameController = TextEditingController();
@@ -20,7 +22,7 @@ class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -101,7 +103,7 @@ class SignUpScreen extends StatelessWidget {
 
                           return null;
                         },
-                        autoValidateMode: true, 
+                        autoValidateMode: _autoValidate, 
                         labelText: 'Correo Electronico '
                       ),
                       const SizedBox(height: 20),
@@ -130,9 +132,12 @@ class SignUpScreen extends StatelessWidget {
                         validator: (value) {
                           final text = value?.trim() ?? '';
 
-                          if (text.isEmpty) return 'Este campo es obligatorio';
-                          if (!RegExp(r'^\+?\d+$').hasMatch(text)) return 'Solo se permiten números';
-                          if (text.length < 10 || text.length > 15) return 'Ingresa un teléfono válido';
+                          if (text.length < 8) return 'Debe tener al menos 8 caracteres';
+                          if (!RegExp(r'[A-Z]').hasMatch(text)) return 'Debe incluir al menos una letra mayúscula';
+                          if (!RegExp(r'[a-z]').hasMatch(text)) return 'Debe incluir al menos una letra minúscula';
+                          if (!RegExp(r'\d').hasMatch(text)) return 'Debe incluir al menos un número';
+                          //* Opcional
+                          if (!RegExp(r'[!@#\$&*~_\-]').hasMatch(text)) return 'Debe incluir al menos un símbolo (!@#\$&*~_- )';
                           
                           return null;
                         },
@@ -163,6 +168,12 @@ class SignUpScreen extends StatelessWidget {
                               FocusScope.of(context).unfocus();
                               _autoValidate = true;
                               if (_formKey.currentState!.validate()) {
+                                ref.read(authRepositoryProvider).signUp(
+                                  username: usernameController.text.trim(), 
+                                  email: emailController.text.trim(), 
+                                  phone: phoneController.text.trim(), 
+                                  password: passwordController.text.trim()
+                                );
                               }
                             }  catch (e) {
                               // TODO

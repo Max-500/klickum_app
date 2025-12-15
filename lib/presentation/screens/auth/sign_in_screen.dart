@@ -94,9 +94,12 @@ class SignInScreen extends StatelessWidget {
                         validator: (value) {
                           final text = value?.trim() ?? '';
 
-                          if (text.isEmpty) return 'Este campo es obligatorio';
-                          if (!RegExp(r'^\+?\d+$').hasMatch(text)) return 'Solo se permiten números';
-                          if (text.length < 10 || text.length > 15) return 'Ingresa un teléfono válido';
+                          if (text.length < 8) return 'Debe tener al menos 8 caracteres';
+                          if (!RegExp(r'[A-Z]').hasMatch(text)) return 'Debe incluir al menos una letra mayúscula';
+                          if (!RegExp(r'[a-z]').hasMatch(text)) return 'Debe incluir al menos una letra minúscula';
+                          if (!RegExp(r'\d').hasMatch(text)) return 'Debe incluir al menos un número';
+                          //* Opcional
+                          if (!RegExp(r'[!@#\$&*~_\-]').hasMatch(text)) return 'Debe incluir al menos un símbolo (!@#\$&*~_- )';
                           
                           return null;
                         },
@@ -114,6 +117,7 @@ class SignInScreen extends StatelessWidget {
                               FocusScope.of(context).unfocus();
                               _autoValidate = true;
                               if (_formKey.currentState!.validate()) {
+                                
                               }
                             }  catch (e) {
                               // TODO
