@@ -23,12 +23,21 @@ CustomTransitionPage _buildFadePage(GoRouterState state, Widget child) {
   );
 }
 
-
 GoRouter getRouter() => GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: SignInScreen.name,
+  initialLocation: '/',
   routes: [
     GoRoute(path: SignInScreen.name, pageBuilder: (context, state) => _buildFadePage(state, SignInScreen())),
-    GoRoute(path: SignUpScreen.name,  pageBuilder: (context, state) => _buildFadePage(state, SignUpScreen()))
+    GoRoute(path: SignUpScreen.name,  pageBuilder: (context, state) => _buildFadePage(state, SignUpScreen())),
+    StatefulShellRoute.indexedStack(
+      pageBuilder: (context, state, navigationShell) => _buildFadePage(state, MainView(navigationShell: navigationShell)),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(path: '/', builder: (context, state) => Text('asdasdasd'))
+          ]
+        )
+      ]
+    )
   ]
 );
