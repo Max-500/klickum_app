@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/presentation/providers/auth_provider.dart';
 import '../../widgets/widgets.dart';
@@ -28,6 +29,8 @@ class SignUpScreen extends ConsumerWidget {
 
     final titleStyle = Theme.of(context).textTheme.titleLarge ?? const TextStyle();
     final label = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
+
+    final colors = Theme.of(context).colorScheme;
     
     return Scaffold(
       body: GestureDetector(
@@ -78,6 +81,8 @@ class SignUpScreen extends ConsumerWidget {
                           final text = value?.trim() ?? '';
 
                           if (text.isEmpty) return 'Este campo es obligatorio';
+
+                          if (text.length < 8) return 'Minimo 8 caracteres';
 
                           if (text.length > 15) return 'Maximo 15 caracteres';
 
@@ -157,28 +162,38 @@ class SignUpScreen extends ConsumerWidget {
                         autoValidateMode: _autoValidate, 
                         labelText: 'Confirmar Contraseña '
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 40),
 
                       SizedBox(
                         width: double.infinity,
                         height: screenHeight * 0.05,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             try {
                               FocusScope.of(context).unfocus();
                               _autoValidate = true;
                               if (_formKey.currentState!.validate()) {
-                                ref.read(authRepositoryProvider).signUp(
+                                await ref.read(authRepositoryProvider).signUp(
                                   username: usernameController.text.trim(), 
                                   email: emailController.text.trim(), 
                                   phone: phoneController.text.trim(), 
                                   password: passwordController.text.trim()
                                 );
+
+                                if (context.mounted) context.go('/');
                               }
                             }  catch (e) {
-                              // TODO
+                              if (!context.mounted) return;
+                              Theme.of(context).colorScheme.onErrorContainer;
+                              ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                                Helper.getSnackbar(
+                                  text: Helper.normalizeError(e), 
+                                  icon: Icons.error_outline_outlined,
+                                  color: colors.error,
+                                  style: label.copyWith(color: Colors.white)
+                                )
+                              );
                             }
-
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppStyle.primaryColor,
@@ -194,7 +209,7 @@ class SignUpScreen extends ConsumerWidget {
                               fontWeight: FontWeight.bold
                             )
                           )
-                        ),
+                        )
                       ),
         
                       const SizedBox(height: 10,),

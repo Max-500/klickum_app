@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/style/app_style.dart';
+import 'package:klicum/presentation/providers/auth_provider.dart';
 import '../../widgets/widgets.dart';
 
 // ignore: must_be_immutable
-class SignInScreen extends StatelessWidget {
+class SignInScreen extends ConsumerWidget {
   static const String name = '/sign-in';
 
   final usernameController = TextEditingController();
@@ -17,12 +20,14 @@ class SignInScreen extends StatelessWidget {
   SignInScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
     final titleStyle = Theme.of(context).textTheme.titleLarge ?? const TextStyle();
     final label = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
+
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: GestureDetector(
@@ -74,6 +79,8 @@ class SignInScreen extends StatelessWidget {
 
                           if (text.isEmpty) return 'Este campo es obligatorio';
 
+                          if (text.length < 8) return 'Minimo 8 caracteres';
+
                           if (text.length > 15) return 'Maximo 15 caracteres';
 
                           if (double.tryParse(text) != null) return 'Este campo no se puede componer por puros números';
@@ -106,21 +113,35 @@ class SignInScreen extends StatelessWidget {
                         autoValidateMode: _autoValidate, 
                         labelText: 'Contraseña '
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 40),
 
                       SizedBox(
                         width: double.infinity,
                         height: screenHeight * 0.05,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             try {
                               FocusScope.of(context).unfocus();
                               _autoValidate = true;
                               if (_formKey.currentState!.validate()) {
-                                
+                                await ref.read(authRepositoryProvider).signIn(
+                                  username: usernameController.text.trim(), 
+                                  password: passwordController.text.trim()
+                                );
+
+                                if (context.mounted) context.go('/');
                               }
                             }  catch (e) {
-                              // TODO
+                              if (!context.mounted) return;
+                              Theme.of(context).colorScheme.onErrorContainer;
+                              ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                                Helper.getSnackbar(
+                                  text: Helper.normalizeError(e), 
+                                  icon: Icons.error_outline_outlined,
+                                  color: colors.error,
+                                  style: label.copyWith(color: Colors.white)
+                                )
+                              );
                             }
 
                           },
@@ -138,10 +159,9 @@ class SignInScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold
                             )
                           )
-                        ),
+                        )
                       ),
-        
-                      const SizedBox(height: 10,),
+                      const SizedBox(height: 10),
         
                       ActionText(
                         prefix: '¿No tienes una cuenta?', 

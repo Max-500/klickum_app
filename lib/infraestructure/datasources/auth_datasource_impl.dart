@@ -34,7 +34,7 @@ class AuthDatasourceImpl implements AuthDatasource {
   
   @override
   Future<void> signIn({required String username, required String password}) async {
-    final url = Uri.parse('$baseURL/signup');
+    final url = Uri.parse('$baseURL/login');
     
     final response = await http.post(
       url,
@@ -44,11 +44,9 @@ class AuthDatasourceImpl implements AuthDatasource {
         'password': password.trim()
       })
     );
-
-    if (response.statusCode == 401) throw Exception('Credenciales Incorrectas');
-    if (response.statusCode != 200) throw Exception('Error al iniciar sesión, intentalo mas tarde');
-
+    
     final json = jsonDecode(response.body);
+    if (response.statusCode != 200 && response.statusCode != 201) throw Exception(Helper.extractErrorMessage(json, 'Error al registrarse, intentalo mas tarde'));
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('access_token', json['access_token']);
