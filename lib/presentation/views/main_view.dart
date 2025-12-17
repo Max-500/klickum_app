@@ -22,13 +22,16 @@ class MainView extends StatelessWidget {
               top: screenHeight * 0.05,
               child: SizedBox(
                 width: screenWidth,
-                child: Center(
-                  child: MyTitle()
-                )
+                child: Center(child: MyTitle())
               )
             ),
-
-            navigationShell
+            
+            Positioned(
+              top: screenHeight * 0.125,
+              left: screenWidth * 0.05,
+              right: screenWidth * 0.05,
+              child: navigationShell
+            )
           ]
         )
       )
