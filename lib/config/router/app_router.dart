@@ -34,7 +34,7 @@ GoRouter getRouter() => GoRouter(
       branches: [
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/', builder: (context, state) => Text('asdasdasd'))
+            GoRoute(path: '/', builder: (context, state) => HomeView())
           ]
         )
       ]
