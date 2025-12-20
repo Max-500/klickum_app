@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/config/constants/helper.dart';
-import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/presentation/providers/auth_provider.dart';
 import '../../widgets/widgets.dart';
 
@@ -167,8 +166,8 @@ class SignUpScreen extends ConsumerWidget {
                       SizedBox(
                         width: double.infinity,
                         height: screenHeight * 0.05,
-                        child: ElevatedButton(
-                          onPressed: () async {
+                        child: Button(
+                          callback: () async {
                             try {
                               FocusScope.of(context).unfocus();
                               _autoValidate = true;
@@ -195,20 +194,8 @@ class SignUpScreen extends ConsumerWidget {
                               );
                             }
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppStyle.primaryColor,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              side: BorderSide(color: Colors.white.withValues(alpha: 0.15), width: 1)
-                            )
-                          ),
-                          child: Text(
-                            'Registrarse', 
-                            style: label.copyWith(
-                              fontWeight: FontWeight.bold
-                            )
-                          )
+                          text: 'Registrarse', 
+                          style: label.copyWith(fontWeight: FontWeight.bold)
                         )
                       ),
         

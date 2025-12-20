@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:klicum/config/style/app_style.dart';
+import '../widgets.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({super.key});
@@ -108,26 +108,7 @@ class ProductCard extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.05),
               child: Center(
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.resolveWith((states) {
-                      if (states.contains(WidgetState.pressed)) {
-                        return AppStyle.primaryColor.withValues(alpha: 0.8);
-                      }
-                      return AppStyle.primaryColor;
-                    }),
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {},
-                  child: Text(
-                    'Añadir al Carrito',
-                    style: labelSmallStyle.copyWith(color: Colors.black, fontWeight: FontWeight.w600)
-                  )
-                )
+                child: Button(callback: (){}, text: 'Añadir Carrito', style: labelSmallStyle.copyWith(color: Colors.black, fontWeight: FontWeight.w600))
               )
             ),
             SizedBox(height: constraints.maxHeight * 0.025)
