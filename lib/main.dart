@@ -19,7 +19,20 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'PublicSans',
         colorSchemeSeed: AppStyle.primaryColor,
-        scaffoldBackgroundColor: AppStyle.backgroundColor
+        scaffoldBackgroundColor: AppStyle.backgroundColor,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.pressed)) return AppStyle.primaryColor.withValues(alpha: 0.8);
+              return AppStyle.primaryColor;
+            }),
+            shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+            elevation: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.pressed)) return 2;
+              return 4;
+            })
+          )
+        )
       ),
       routerConfig: getRouter()
     );
