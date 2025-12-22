@@ -22,7 +22,7 @@ class ReedemView extends StatelessWidget {
         Text('Introducir Código', style: subtitleStyle),
         const SizedBox(height: 5),
         InputField(autoValidateMode: false, labelText: ''),
-        SizedBox(height: screenHeight * 0.1),
+        SizedBox(height: screenHeight * 0.05),
         SizedBox(
           width: double.infinity,
           height: screenHeight * 0.05,

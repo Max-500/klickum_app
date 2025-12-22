@@ -59,134 +59,145 @@ class _MainViewState extends State<MainView> {
     // Helper para escoger outlined vs filled según selected
     IconData iconFor(bool selected, IconData outlined, IconData filled) => selected ? filled : outlined;
     
-    return Scaffold(
-      extendBody: true,
-      body: GestureDetector(
-        child: Stack(
-          children: [
-            const FancyBackground(),
-            Positioned(
-              top: screenHeight * 0.05,
-              child: SizedBox(
-                width: screenWidth,
-                child: Center(child: MyTitle()),
+    return PopScope(
+      canPop: widget.navigationShell.currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        if (widget.navigationShell.currentIndex != 0) {
+          widget.navigationShell.goBranch(0);
+          return;
+        }
+      },
+      child: Scaffold(
+        extendBody: true,
+        body: GestureDetector(
+          child: Stack(
+            children: [
+              const FancyBackground(),
+              Positioned(
+                top: screenHeight * 0.05,
+                child: SizedBox(
+                  width: screenWidth,
+                  child: Center(child: MyTitle()),
+                ),
               ),
-            ),
-            Positioned(
-              top: screenHeight * 0.125,
+              Positioned(
+                top: screenHeight * 0.125,
+                left: horizontalPadding,
+                right: horizontalPadding,
+                bottom: 0,
+                child: widget.navigationShell,
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: widget.navigationShell.currentIndex == 1 ? null : SafeArea(
+          minimum: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            margin: EdgeInsets.only(
               left: horizontalPadding,
               right: horizontalPadding,
-              bottom: 0,
-              child: widget.navigationShell,
+              bottom: bottomMargin,
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.only(bottom: 12),
-        child: Container(
-          margin: EdgeInsets.only(
-            left: horizontalPadding,
-            right: horizontalPadding,
-            bottom: bottomMargin,
-          ),
-          decoration: BoxDecoration(
-            color: const Color.fromRGBO(8, 13, 0, 0.9),
-            borderRadius: BorderRadius.circular(99),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-              width: 2,
+            decoration: BoxDecoration(
+              color: const Color.fromRGBO(8, 13, 0, 0.9),
+              borderRadius: BorderRadius.circular(99),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.15),
+                width: 2,
+              ),
             ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(99),
-            child: NavigationBar(
-              height: navHeight,
-              backgroundColor: Colors.white.withValues(alpha: 0.1),
-              elevation: 0,
-
-              selectedIndex: widget.navigationShell.currentIndex,
-              onDestinationSelected: (index) {
-                  final isSameTab = index == widget.navigationShell.currentIndex;
-                  widget.navigationShell.goBranch(index, initialLocation: isSameTab
-                );
-              },
-
-              // Quitamos el pill default: tu círculo es el indicador
-              indicatorColor: Colors.transparent,
-              labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-
-              destinations: [
-                NavigationDestination(
-                  icon: _navIcon(
-                    icon: iconFor(
-                      widget.navigationShell.currentIndex == 0,
-                      Icons.home_outlined,
-                      Icons.home,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: NavigationBar(
+                height: navHeight,
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                elevation: 0,
+      
+                selectedIndex: widget.navigationShell.currentIndex,
+                onDestinationSelected: (index) {
+                    final isSameTab = index == widget.navigationShell.currentIndex;
+                    widget.navigationShell.goBranch(index, initialLocation: isSameTab
+                  );
+                },
+      
+                // Quitamos el pill default: tu círculo es el indicador
+                indicatorColor: Colors.transparent,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+      
+                destinations: [
+                  NavigationDestination(
+                    icon: _navIcon(
+                      icon: iconFor(
+                        widget.navigationShell.currentIndex == 0,
+                        Icons.home_outlined,
+                        Icons.home,
+                      ),
+                      selected: widget.navigationShell.currentIndex == 0,
+                      containerSize: iconContainerSize,
+                      iconSize: iconSize,
                     ),
-                    selected: widget.navigationShell.currentIndex == 0,
-                    containerSize: iconContainerSize,
-                    iconSize: iconSize,
+                    label: 'Home',
                   ),
-                  label: 'Home',
-                ),
-                NavigationDestination(
-                  icon: _navIcon(
-                    icon: iconFor(
-                      widget.navigationShell.currentIndex == 1,
-                      Icons.shopping_bag_outlined,
-                      Icons.shopping_bag,
+                  NavigationDestination(
+                    icon: _navIcon(
+                      icon: iconFor(
+                        widget.navigationShell.currentIndex == 1,
+                        Icons.shopping_bag_outlined,
+                        Icons.shopping_bag,
+                      ),
+                      selected: widget.navigationShell.currentIndex == 1,
+                      containerSize: iconContainerSize,
+                      iconSize: iconSize,
                     ),
-                    selected: widget.navigationShell.currentIndex == 1,
-                    containerSize: iconContainerSize,
-                    iconSize: iconSize,
+                    label: 'Caja',
                   ),
-                  label: 'Caja',
-                ),
-                NavigationDestination(
-                  icon: _navIcon(
-                    icon: iconFor(
-                      widget.navigationShell.currentIndex == 2,
-                      Icons.videocam_outlined,
-                      Icons.videocam,
+                  NavigationDestination(
+                    icon: _navIcon(
+                      icon: iconFor(
+                        widget.navigationShell.currentIndex == 2,
+                        Icons.redeem_outlined,
+                        Icons.redeem,
+                      ),
+                      selected: widget.navigationShell.currentIndex == 2,
+                      containerSize: iconContainerSize,
+                      iconSize: iconSize,
                     ),
-                    selected: widget.navigationShell.currentIndex == 2,
-                    containerSize: iconContainerSize,
-                    iconSize: iconSize,
+                    label: 'Canje',
                   ),
-                  label: 'Cam',
-                ),
-                NavigationDestination(
-                  icon: _navIcon(
-                    icon: iconFor(
-                      widget.navigationShell.currentIndex == 3,
-                      Icons.shopping_cart_outlined,
-                      Icons.shopping_cart,
+                  NavigationDestination(
+                    icon: _navIcon(
+                      icon: iconFor(
+                        widget.navigationShell.currentIndex == 3,
+                        Icons.shopping_cart_outlined,
+                        Icons.shopping_cart,
+                      ),
+                      selected: widget.navigationShell.currentIndex == 3,
+                      containerSize: iconContainerSize,
+                      iconSize: iconSize
                     ),
-                    selected: widget.navigationShell.currentIndex == 3,
-                    containerSize: iconContainerSize,
-                    iconSize: iconSize
+                    label: 'Carrito'
                   ),
-                  label: 'Carrito'
-                ),
-                NavigationDestination(
-                  icon: _navIcon(
-                    icon: iconFor(
-                      widget.navigationShell.currentIndex == 4,
-                      Icons.person_outline,
-                      Icons.person
+                  NavigationDestination(
+                    icon: _navIcon(
+                      icon: iconFor(
+                        widget.navigationShell.currentIndex == 4,
+                        Icons.person_outline,
+                        Icons.person
+                      ),
+                      selected: widget.navigationShell.currentIndex == 4,
+                      containerSize: iconContainerSize,
+                      iconSize: iconSize
                     ),
-                    selected: widget.navigationShell.currentIndex == 4,
-                    containerSize: iconContainerSize,
-                    iconSize: iconSize
-                  ),
-                  label: 'Perfil',
-                )
-              ]
+                    label: 'Perfil',
+                  )
+                ]
+              )
             )
           )
         )
-      )
+      ),
     );
   }
 }

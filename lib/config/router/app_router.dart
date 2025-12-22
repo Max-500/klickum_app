@@ -34,9 +34,29 @@ GoRouter getRouter() => GoRouter(
       branches: [
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/', builder: (context, state) => HomeView())
+            GoRoute(path: '/', builder: (context, state) => HomeView()),
           ]
-        )
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(path: '/raffle', builder: (context, state) => RaffleView()),
+          ]
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(path: '/reedem', builder: (context, state) => ReedemView()),
+          ]
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(path: '/', builder: (context, state) => HomeView()),
+          ]
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(path: '/', builder: (context, state) => HomeView()),
+          ]
+        ),
       ]
     )
   ]
