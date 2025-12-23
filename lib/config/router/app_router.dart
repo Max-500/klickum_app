@@ -49,7 +49,7 @@ GoRouter getRouter() => GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/', builder: (context, state) => HomeView()),
+            GoRoute(path: '/cart', builder: (context, state) => CartView()),
           ]
         ),
         StatefulShellBranch(

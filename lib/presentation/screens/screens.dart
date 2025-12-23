@@ -1,3 +1,4 @@
+export '../views/cart_view.dart';
 export '../views/main_view.dart';
 export '../views/home_view.dart';
 export '../views/raffle_view.dart';

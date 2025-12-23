@@ -18,7 +18,7 @@ class ReedemView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Canjear Código', style: displaySmallStyle),
-        SizedBox(height: screenHeight * 0.05),
+        SizedBox(height: screenHeight * 0.025),
         Text('Introducir Código', style: subtitleStyle),
         const SizedBox(height: 5),
         InputField(autoValidateMode: false, labelText: ''),

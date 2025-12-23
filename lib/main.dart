@@ -32,6 +32,13 @@ class MyApp extends StatelessWidget {
               return 4;
             })
           )
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            shape: const CircleBorder()
+          )
         )
       ),
       routerConfig: getRouter()
