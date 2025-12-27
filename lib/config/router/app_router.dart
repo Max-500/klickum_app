@@ -54,7 +54,7 @@ GoRouter getRouter() => GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/', builder: (context, state) => HomeView()),
+            GoRoute(path: '/profile', builder: (context, state) => ProfileView()),
           ]
         ),
       ]
