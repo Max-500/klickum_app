@@ -1,119 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:klicum/domain/entities/product.dart';
 import '../widgets.dart';
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key});
+  final Product product;
+
+  const ProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
 
-    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600, overflow: TextOverflow.ellipsis) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, overflow: TextOverflow.ellipsis);
+    final bodyLargeStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white) ?? const TextStyle(color: Colors.white);
+    final bodySmallStyle = Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w200) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w200);
 
-    final bodyLargeStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white, overflow: TextOverflow.ellipsis) ?? const TextStyle(color: Colors.white, overflow: TextOverflow.ellipsis);
-    final bodySmallStyle = Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w200, overflow: TextOverflow.ellipsis) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w200, overflow: TextOverflow.ellipsis);
-
-    final labelSmallStyle = Theme.of(context).textTheme.labelSmall?.copyWith(overflow: TextOverflow.ellipsis) ?? const TextStyle(overflow: TextOverflow.ellipsis);
+    final labelMediumStyle = Theme.of(context).textTheme.labelMedium?.copyWith(overflow: TextOverflow.ellipsis, fontWeight: FontWeight.w600) ?? const TextStyle(overflow: TextOverflow.ellipsis, fontWeight: FontWeight.w600);
 
     return Container(
-      width: screenWidth * 0.425,
-      height: screenHeight * 0.4,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15)
       ),
       clipBehavior: Clip.hardEdge,
-      child: LayoutBuilder(
-        builder: (context, constraints) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: constraints.maxWidth,
-              height: constraints.maxHeight * 0.5,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.network(
-                      'https://i.pinimg.com/736x/d7/8f/cd/d78fcd7e56e368782c00160289e3e46a.jpg',
-                      fit: BoxFit.cover
-                    )
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
 
-                  Positioned(
-                    top: constraints.maxHeight * 0.5 * 0.12,
-                    left: constraints.maxWidth * 0.06,
-                    child: Container(
-                      width: constraints.maxWidth * 0.5,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: constraints.maxWidth * 0.05,
-                        vertical: constraints.maxHeight * 0.5 * 0.06,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color.fromRGBO(8, 13, 0, 1),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.15),
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(
-                        'Hechicero Especial',
-                        style: labelSmallStyle.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w200,
-                        ),
-                        maxLines: 2,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: constraints.maxHeight * 0.015),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.05),
-              child: Text(
-                'Suguru Geto',
-                style: bodyLargeStyle,
-                maxLines: 2
-              )
-            ), // Flex 1
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.05),
-                child: Text(
-                  'Pilar del mundo de la hechiceria y mejor amigo de Satoru Gojo',
-                  style: bodySmallStyle,
-                  maxLines: 3,
-                  textAlign: TextAlign.left
+          AspectRatio(
+            aspectRatio: 4 / 5,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.network(
+                  product.image,
+                  fit: BoxFit.cover,
                 )
-              )
-            ), // Flex 4
+              ]
+            )
+          ),
 
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.05),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Expanded(child: Text('4.99€', style: titleStyle, textAlign: TextAlign.end))
-                ]
-              )
-            ),
+          const SizedBox(height: 8),
 
-            const SizedBox(height: 5),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(product.name, style: bodyLargeStyle)
+          ),
 
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.05),
-              child: Center(
-                child: Button(callback: (){}, text: 'Añadir Carrito', style: labelSmallStyle.copyWith(color: Colors.black, fontWeight: FontWeight.w600))
+          const SizedBox(height: 5),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              product.description,
+              style: bodySmallStyle
+            )
+          ),
+
+          const SizedBox(height: 10),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text('${product.price}€', style: titleStyle, textAlign: TextAlign.end)
               )
-            ),
-            SizedBox(height: constraints.maxHeight * 0.025)
-          ]
-        )
+            ]
+          ),
+
+          const SizedBox(height: 10),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Button(
+                  callback: () {},
+                  text: 'Añadir Carrito',
+                  style: labelMediumStyle.copyWith(color: Colors.black)
+                )
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10)
+        ]
       )
     );
   }

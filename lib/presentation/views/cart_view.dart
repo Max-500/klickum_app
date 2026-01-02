@@ -56,9 +56,9 @@ class CartView extends StatelessWidget {
             separatorBuilder: (context, index) => SizedBox(height: screenHeight * 0.02),
             itemBuilder: (context, index) => Row(
               children: const [
-                ProductCard(),
+                // ProductCard(title: '',),
                 Spacer(),
-                ProductCard()
+                // ProductCard(title: '',)
               ]
             )
           )

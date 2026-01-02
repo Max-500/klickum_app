@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/config/constants/helper.dart';
-import 'package:klicum/presentation/providers/auth_provider.dart';
+import 'package:klicum/presentation/providers/repositories/auth_repository_provider.dart';
 import '../../widgets/widgets.dart';
 
 // ignore: must_be_immutable
@@ -135,7 +135,7 @@ class SignInScreen extends ConsumerWidget {
                               ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
                                 Helper.getSnackbar(
                                   text: Helper.normalizeError(e), 
-                                  icon: Icons.error_outline_outlined,
+                                  isWarning: Helper.isNetworkError(e),
                                   color: colors.error,
                                   style: label.copyWith(color: Colors.white)
                                 )
