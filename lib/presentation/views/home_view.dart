@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:klicum/config/constants/exceptions.dart';
 import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/presentation/providers/products_provider.dart';
+import 'package:klicum/presentation/providers/raffles_provider.dart';
 import 'package:klicum/presentation/widgets/shared/no_data.dart';
 import 'package:klicum/presentation/widgets/widgets.dart';
 
@@ -15,29 +17,46 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  final scrollController = ScrollController();
+  final scrollControllerRafles = ScrollController();
+  final scrollControllerProducts = ScrollController();
 
 
   @override
   void initState() {
     super.initState();
 
-    scrollController.addListener(() {
+    scrollControllerRafles.addListener(() {
       if (!mounted) return;
 
-      final max = scrollController.position.maxScrollExtent;
-      final offset = scrollController.offset;
+      final max = scrollControllerRafles.position.maxScrollExtent;
+      final offset = scrollControllerRafles.offset;
 
-      if (offset >= max - 300) ref.read(productsProvider.notifier).loadMoreProducts();
+      if (offset >= max - 300) ref.read(raffleProvider.notifier).loadMoreRaffles();
     });
 
+    scrollControllerProducts.addListener(() {
+      if (!mounted) return;
+
+      final max = scrollControllerProducts.position.maxScrollExtent;
+      final offset = scrollControllerProducts.offset;
+
+      if (offset >= max - 300) ref.read(productProvider.notifier).loadMoreProducts();
+    });
   }
 
   @override
   void dispose() {
-    scrollController.dispose();
+    scrollControllerProducts.dispose();
     super.dispose();
   }
+
+  SnackBar getSnackbar(Object error, Color color) => Helper.getSnackbar(
+    color: color,
+    isWarning: Helper.isNetworkError(error),
+    text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
+    duration: Helper.isNetworkError(error) ? const Duration(days: 1) : null,
+  );      
+  
 
   @override
   Widget build(BuildContext context) {
@@ -50,48 +69,54 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     final colors = Theme.of(context).colorScheme;
 
-    ref.listen(productsProvider, (previous, next) => next.whenOrNull(
+    final asyncRaffles = ref.watch(raffleProvider);
+    final asyncProducts = ref.watch(productProvider);
+
+    ref.listen(raffleProvider, (previous, next) => next.whenOrNull(
       error: (error, stackTrace) {
         if (!mounted) return;
+        if (error is SessionExpiredException) {
+          Helper.handleTokenExpired();
+          return;
+        }
 
-        ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
-          Helper.getSnackbar(
-            color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
-            isWarning: Helper.isNetworkError(error),
-            text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
-            duration: Helper.isNetworkError(error) ? const Duration(days: 1) : null,
-            callback: () {}
-          )        
-        );
+        ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
+      }
+    ));
+
+
+    ref.listen(productProvider, (previous, next) => next.whenOrNull(
+      error: (error, stackTrace) {
+        if (!mounted) return;
+        if (error is SessionExpiredException) {
+          Helper.handleTokenExpired();
+          return;
+        }
+
+        ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
       }
     ));
 
     ref.listen(loadMoreProductsErrorProvider, (prev, next) {
       if (!mounted) return;
-      if (next == null) return;
-      ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
-        Helper.getSnackbar(
-          color: Helper.isNetworkError(next) ? colors.tertiary : colors.error,
-          isWarning: Helper.isNetworkError(next),
-          text: Helper.isNetworkError(next) ? 'Sin Conexión a Internet' : Helper.normalizeError(next),
-          duration: Helper.isNetworkError(next) ? const Duration(days: 1) : null,
-          callback: () {}
-        )
-      );
+      if (next == null || next is SessionExpiredException) return;
+      ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(next, Helper.isNetworkError(next) ? colors.tertiary : colors.error));
+      ref.read(loadMoreProductsErrorProvider.notifier).clear();
     });
-
-    final asyncProducts = ref.watch(productsProvider);
 
     return RefreshIndicator(
       onRefresh: () async {
         try {
-          ref.invalidate(productsProvider);
-          await ref.read(productsProvider.future);
+          ref.read(loadMoreProductsErrorProvider.notifier).clear();
+          ref.invalidate(raffleProvider);
+          await ref.read(raffleProvider.future);
+          ref.invalidate(productProvider);
+          await ref.read(productProvider.future);
         // ignore: empty_catches
         } catch (e) {}
       },
       child: CustomScrollView(
-        controller: scrollController,
+        controller: scrollControllerProducts,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
@@ -114,11 +139,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
           SliverToBoxAdapter(
             child: SizedBox(
               height: (screenHeight * 0.125) + 32,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: 10,
-                separatorBuilder: (context, index) => SizedBox(width: screenWidth * 0.05),
-                itemBuilder: (context, index) => RaffleCard()
+              child: asyncRaffles.when(
+                data: (data) => ListView.separated(
+                  
+                  controller: scrollControllerRafles,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: data.length,
+                  separatorBuilder: (context, index) => SizedBox(width: screenWidth * 0.05),
+                  itemBuilder: (context, index) => RaffleCard(raffle: data[index])
+                ), 
+                error: (error, stackTrace) => NoData(height: screenHeight * 0.05,), 
+                loading: () => const CircularProgressIndicator(),
               )
             )
           ),

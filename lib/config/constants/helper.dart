@@ -89,8 +89,8 @@ class Helper {
     if (_handling || ctx == null || !ctx.mounted) return;
     
     final router = GoRouter.of(ctx);
-    final currentLoc = router.routeInformationProvider.value.location;
-    if(currentLoc == '/') return;
+    final currentLoc = router.routeInformationProvider.value.uri;
+    if(currentLoc.path == '/sign-in') return;
     _handling = true;
     try {
       if (!ctx.mounted) return;
@@ -98,7 +98,5 @@ class Helper {
     } finally {
       _handling = false;
     }
-
-
   }
 }

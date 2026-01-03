@@ -143,19 +143,6 @@ class _MainViewState extends State<MainView> {
                   NavigationDestination(
                     icon: _navIcon(
                       icon: iconFor(
-                        widget.navigationShell.currentIndex == 1,
-                        Icons.shopping_bag_outlined,
-                        Icons.shopping_bag,
-                      ),
-                      selected: widget.navigationShell.currentIndex == 1,
-                      containerSize: iconContainerSize,
-                      iconSize: iconSize,
-                    ),
-                    label: 'Caja',
-                  ),
-                  NavigationDestination(
-                    icon: _navIcon(
-                      icon: iconFor(
                         widget.navigationShell.currentIndex == 2,
                         Icons.redeem_outlined,
                         Icons.redeem,

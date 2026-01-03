@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:klicum/config/constants/exceptions.dart';
 import 'package:klicum/domain/entities/presentation/product_data.dart';
 import 'package:klicum/domain/entities/product.dart';
 import 'package:klicum/presentation/providers/repositories/product_repository_provider.dart';
 
-final productsProvider = AsyncNotifierProvider<ProductsNotifier, List<Product>>(ProductsNotifier.new);
+final productProvider = AsyncNotifierProvider<ProductsNotifier, List<Product>>(ProductsNotifier.new);
 
 class ProductsNotifier extends AsyncNotifier<List<Product>> {
   int currentPage = 1;
   int totalPages = 0;
 
   bool isLoadingMore = false;
-  Object? loadMoreError;
 
   @override
   Future<List<Product>> build() async {
@@ -20,7 +20,6 @@ class ProductsNotifier extends AsyncNotifier<List<Product>> {
     currentPage = 2;
     totalPages = data.totalPages;
 
-    loadMoreError = null;
 
     return data.products;
   }
@@ -30,11 +29,10 @@ class ProductsNotifier extends AsyncNotifier<List<Product>> {
     if (currentPage > totalPages && totalPages != 0) return;
 
     isLoadingMore = true;
-    loadMoreError = null;
 
     try {
       final data = await fetchProducts(page: currentPage);
-
+      ref.read(loadMoreProductsErrorProvider.notifier).clear();
       currentPage++;
       totalPages = data.totalPages;
 
@@ -42,15 +40,13 @@ class ProductsNotifier extends AsyncNotifier<List<Product>> {
       state = AsyncData([...previous, ...data.products]);
     } catch (e, st) {
       ref.read(loadMoreProductsErrorProvider.notifier).setError(e);
-      if (state.hasValue && (state.value?.isNotEmpty ?? false)) return;
+      if (state.hasValue && (state.value?.isNotEmpty ?? false) && e is! SessionExpiredException) return;
     
       state = AsyncError(e, st);
     } finally {
       isLoadingMore = false;
     }
   }
-
-  Future<void> retryLoadMore() async => await loadMoreProducts();
 
   Future<ProductData> fetchProducts({required int page}) {
     return ref.read(productRepositoryProvider).getProducts(

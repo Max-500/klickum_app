@@ -30,11 +30,19 @@ class CartView extends StatelessWidget {
           children: [
             Text(e, style: bodyMediumStyle),
             const Spacer(),
-            IconButton(onPressed: (){}, icon: Icon(Icons.remove)),
+            IconButton(onPressed: (){}, icon: Icon(Icons.remove), style: IconButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            shape: const CircleBorder()
+          )),
             SizedBox(width: screenWidth * 0.025),
             Text('1', style: bodyMediumStyle),
             SizedBox(width: screenWidth * 0.025),
-            IconButton(onPressed: (){}, icon: Icon(Icons.add))
+            IconButton(onPressed: (){}, icon: Icon(Icons.add), style: IconButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            shape: const CircleBorder()
+          ),)
           ]
         )),
         SizedBox(height: screenHeight * 0.025),

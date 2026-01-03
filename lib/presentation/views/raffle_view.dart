@@ -1,11 +1,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:klicum/config/style/app_style.dart';
+import 'package:klicum/domain/entities/raffle.dart';
 
 import '../widgets/widgets.dart';
 
 class RaffleView extends StatelessWidget {
-  const RaffleView({super.key});
+  final Raffle raffle;
+
+  const RaffleView({super.key, required this.raffle});
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +35,9 @@ class RaffleView extends StatelessWidget {
           Text('Premio', style: miniTitleStyle),
           Row(
             children: [
-              Text('Galaxy S24', style: bodyLargeStyle),
+              Text(raffle.reward, style: bodyLargeStyle),
               const Spacer(),
-              Text('90 Números', style: subtitleStyle)
+              Text('${raffle.amount} Números', style: subtitleStyle)
             ]
           ),
       
@@ -50,7 +53,7 @@ class RaffleView extends StatelessWidget {
               mainAxisSpacing: 12,
               childAspectRatio: 1
             ),
-            itemCount: 90,
+            itemCount: raffle.amount,
             itemBuilder: (context, index) {
               final number = Random().nextInt(3);
               return Container(
@@ -78,7 +81,7 @@ class RaffleView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text('8.5€', style: displayMediumStyle),
+              Text('${raffle.price}€', style: displayMediumStyle),
               const SizedBox(width: 6),
               Text('/Nro', style: miniTitleStyle)
             ]
