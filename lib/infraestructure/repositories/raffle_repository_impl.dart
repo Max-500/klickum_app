@@ -13,4 +13,7 @@ class RaffleRepositoryImpl implements RaffleRepository {
 
   @override
   Future<Map<String, Ticket>> getRafflesTickets({required String id}) async => await datasource.getRafflesTickets(id: id);
+  
+  @override
+  Future<Ticket> buyTicket({required String id, required String code}) async => await datasource.buyTicket(id: id, code: code);
 }

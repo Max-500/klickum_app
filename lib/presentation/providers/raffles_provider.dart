@@ -61,7 +61,7 @@ class RaffleTicketNotifier extends Notifier<String> {
   void setRaffleID(String id) => state = id;
 }
 
-final raffleTicketsProvider = AsyncNotifierProvider<RaffleTicketsNotifier, Map<String, Ticket>>(RaffleTicketsNotifier.new);
+final raffleTicketsProvider = AsyncNotifierProvider.autoDispose<RaffleTicketsNotifier, Map<String, Ticket>>(RaffleTicketsNotifier.new);
 
 class RaffleTicketsNotifier extends AsyncNotifier<Map<String, Ticket>> {
 
@@ -114,4 +114,27 @@ class RaffleTicketsNotifier extends AsyncNotifier<Map<String, Ticket>> {
 
     state = AsyncData(updated);
   }
+
+  Future<void> purchaseTicket({required String raffleId, required String code}) async {
+    if (!state.hasValue) return;
+
+    final current = state.value!;
+    final updated = Map<String, Ticket>.from(current);
+
+    try {
+      final purchased = await ref.read(raffleRepositoryProvider).buyTicket(id: raffleId, code: code);
+
+      // 2) Reflejar en el state
+      // Quitamos cualquier posible previo (ya que se concretó la compra)
+      updated.removeWhere((k, t) => t.isMyTicket && t.id == 'no-id');
+
+      // Guardamos el comprado (con id real)
+      updated[code] = purchased;
+      if (!ref.mounted) return;
+      state = AsyncData(updated);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
 }

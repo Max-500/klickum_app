@@ -82,5 +82,37 @@ class RaffleDatasourceImpl implements RaffleDatasource {
     }
     return data;
   }
+  
+  @override
+  Future<Ticket> buyTicket({required String id, required String code}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final token = prefs.getString('access_token');
+    final userID = prefs.getString('id');
+
+    if (token == null || userID == null) throw SessionExpiredException(message: 'Sesión Terminada en buyTicket');
+
+    final url = Uri.parse('${Enviroment.baseURL}/ticket');
+
+    final response = await http.post(
+      url, 
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      }, 
+      body: jsonEncode({
+        'raffleId': id,
+        'code': int.parse(code)
+      }));
+
+    if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en buyTicket');
+    if (response.statusCode != 201) throw Exception('Error al comprar el ticket, intentalo mas tarde');
+
+    final json = jsonDecode(response.body);
+
+    final ticketResponse = TicketResponse.fromJson(json, userID);
+
+    return TicketMapper.ticketResponseToEntity(ticketResponse);
+  }
 
 }

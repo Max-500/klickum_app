@@ -34,7 +34,8 @@ class Helper {
     Color? color,
     TextStyle? style, 
     Duration? duration,
-    VoidCallback? callback
+    VoidCallback? callback,
+    bool isSuccess = false
   }) => 
     SnackBar(
     duration: duration ?? Duration(days: 1),
@@ -63,7 +64,7 @@ class Helper {
         ),
         child: Row(
           children: [
-            Icon(isWarning ? Icons.warning_amber_rounded : Icons.cloud_off_outlined, color: isWarning ? Colors.orangeAccent : color ?? Colors.redAccent),
+            Icon(isSuccess ? Icons.check_circle : isWarning ? Icons.warning_amber_rounded : Icons.cloud_off_outlined, color: isWarning ? Colors.orangeAccent : color ?? Colors.redAccent),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

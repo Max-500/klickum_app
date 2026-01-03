@@ -18,12 +18,13 @@ class RaffleView extends ConsumerStatefulWidget {
 }
 
 class _RaffleViewState extends ConsumerState<RaffleView> {
+  bool isLoading = false;
 
   SnackBar getSnackbar(Object error, Color color) => Helper.getSnackbar(
     color: color,
     isWarning: Helper.isNetworkError(error),
     text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
-    duration: Helper.isNetworkError(error) ? const Duration(days: 1) : null,
+    duration: Helper.isNetworkError(error) ? const Duration(days: 1) : const Duration(seconds: 3),
   );
 
   @override
@@ -95,8 +96,12 @@ class _RaffleViewState extends ConsumerState<RaffleView> {
             right: screenWidth * 0.05,
             child: RefreshIndicator(
               onRefresh: () async {
-                ref.invalidate(raffleTicketsProvider);
-                await ref.read(raffleTicketsProvider.future);
+                try {
+                  ref.invalidate(raffleTicketsProvider);
+                  await ref.read(raffleTicketsProvider.future);
+                // ignore: empty_catches
+                } catch (e) {
+                }
               },
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -198,9 +203,27 @@ class _RaffleViewState extends ConsumerState<RaffleView> {
                                           color: Colors.black,
                                           fontWeight: FontWeight.w600,
                                         ),
-                                        callback: () {
-                                          final numero = selected.code;
-                                          print(numero);
+                                        callback: () async {
+                                          try {
+                                            if (isLoading) return;
+                                            isLoading = true;
+                                            await ref.read(raffleTicketsProvider.notifier).purchaseTicket(raffleId: widget.raffle.id, code: selected.code);
+                                            if (!mounted) return;
+                                            // ignore: use_build_context_synchronously
+                                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(Helper.getSnackbar(
+                                              color: colors.primary,
+                                              isWarning: false,
+                                              text: 'Número adquirido correctamente',
+                                              duration: const Duration(seconds: 5),
+                                              isSuccess: true
+                                            ));
+                                          } catch(error) {
+                                            if (!mounted) return;
+                                            // ignore: use_build_context_synchronously
+                                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
+                                          } finally {
+                                            isLoading = false;
+                                          }
                                         },
                                       ),
                                     )
@@ -213,7 +236,7 @@ class _RaffleViewState extends ConsumerState<RaffleView> {
                         ]
                       );
                     },
-                    error: (e, st) => SliverToBoxAdapter(child: Text(e.toString())),
+                    error: (e, st) => SliverToBoxAdapter(child: SizedBox.shrink()),
                     loading: () => const SliverToBoxAdapter(
                       child: Center(child: CircularProgressIndicator())
                     )
