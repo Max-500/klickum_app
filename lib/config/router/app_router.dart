@@ -30,7 +30,7 @@ GoRouter getRouter() => GoRouter(
   routes: [
     GoRoute(path: SignInScreen.name, pageBuilder: (context, state) => _buildFadePage(state, SignInScreen())),
     GoRoute(path: SignUpScreen.name,  pageBuilder: (context, state) => _buildFadePage(state, SignUpScreen())),
-    GoRoute(path: '/raffle', builder: (context, state) => RaffleView(raffle: state.extra as Raffle)),
+    GoRoute(path: '/raffle', builder: (context, state) => RaffeScreen(raffle: state.extra as Raffle)),
     StatefulShellRoute.indexedStack(
       pageBuilder: (context, state, navigationShell) => _buildFadePage(state, MainView(navigationShell: navigationShell)),
       branches: [

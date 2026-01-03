@@ -8,16 +8,16 @@ import 'package:klicum/domain/entities/ticket.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
 import '../widgets/widgets.dart';
 
-class RaffleView extends ConsumerStatefulWidget {
+class RaffeScreen extends ConsumerStatefulWidget {
   final Raffle raffle;
 
-  const RaffleView({super.key, required this.raffle});
+  const RaffeScreen({super.key, required this.raffle});
 
   @override
-  ConsumerState<RaffleView> createState() => _RaffleViewState();
+  ConsumerState<RaffeScreen> createState() => _RaffleViewState();
 }
 
-class _RaffleViewState extends ConsumerState<RaffleView> {
+class _RaffleViewState extends ConsumerState<RaffeScreen> {
   bool isLoading = false;
 
   SnackBar getSnackbar(Object error, Color color) => Helper.getSnackbar(

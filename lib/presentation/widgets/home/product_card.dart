@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klicum/config/constants/types.dart';
 import 'package:klicum/domain/entities/product.dart';
 import '../widgets.dart';
 
@@ -76,9 +77,12 @@ class ProductCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Button(
-                  callback: () {},
-                  text: 'Añadir Carrito',
-                  style: labelMediumStyle.copyWith(color: Colors.black)
+                  callback: product.productStatus == ProductStatus.available ? () async {
+                    
+                  } : null,
+                  text: product.productStatus == ProductStatus.available ?  'Añadir Carrito' : 'No hay Stock',
+                  style: labelMediumStyle.copyWith(color: product.productStatus == ProductStatus.available ?Colors.black : Colors.white),
+                  backgroundColor: product.productStatus == ProductStatus.available ? null : Color.fromRGBO(123, 35, 17, 1)
                 )
               ),
             ],

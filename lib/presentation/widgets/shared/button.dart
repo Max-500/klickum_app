@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Button extends StatelessWidget {
-  final VoidCallback callback;
+  final VoidCallback? callback;
   final String text;
   final TextStyle? style;
   final Color? backgroundColor;
