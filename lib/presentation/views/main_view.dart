@@ -92,7 +92,7 @@ class _MainViewState extends State<MainView> {
             ],
           ),
         ),
-        bottomNavigationBar: widget.navigationShell.currentIndex == 1 ? null : SafeArea(
+        bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.only(bottom: 12),
           child: Container(
             margin: EdgeInsets.only(
@@ -138,29 +138,29 @@ class _MainViewState extends State<MainView> {
                       containerSize: iconContainerSize,
                       iconSize: iconSize,
                     ),
-                    label: 'Home',
+                    label: 'Home'
+                  ),
+                  NavigationDestination(
+                    icon: _navIcon(
+                      icon: iconFor(
+                        widget.navigationShell.currentIndex == 1,
+                        Icons.redeem_outlined,
+                        Icons.redeem,
+                      ),
+                      selected: widget.navigationShell.currentIndex == 1,
+                      containerSize: iconContainerSize,
+                      iconSize: iconSize,
+                    ),
+                    label: 'Canje'
                   ),
                   NavigationDestination(
                     icon: _navIcon(
                       icon: iconFor(
                         widget.navigationShell.currentIndex == 2,
-                        Icons.redeem_outlined,
-                        Icons.redeem,
-                      ),
-                      selected: widget.navigationShell.currentIndex == 2,
-                      containerSize: iconContainerSize,
-                      iconSize: iconSize,
-                    ),
-                    label: 'Canje',
-                  ),
-                  NavigationDestination(
-                    icon: _navIcon(
-                      icon: iconFor(
-                        widget.navigationShell.currentIndex == 3,
                         Icons.shopping_cart_outlined,
                         Icons.shopping_cart,
                       ),
-                      selected: widget.navigationShell.currentIndex == 3,
+                      selected: widget.navigationShell.currentIndex == 2,
                       containerSize: iconContainerSize,
                       iconSize: iconSize
                     ),
@@ -169,15 +169,15 @@ class _MainViewState extends State<MainView> {
                   NavigationDestination(
                     icon: _navIcon(
                       icon: iconFor(
-                        widget.navigationShell.currentIndex == 4,
+                        widget.navigationShell.currentIndex == 3,
                         Icons.person_outline,
                         Icons.person
                       ),
-                      selected: widget.navigationShell.currentIndex == 4,
+                      selected: widget.navigationShell.currentIndex == 3,
                       containerSize: iconContainerSize,
                       iconSize: iconSize
                     ),
-                    label: 'Perfil',
+                    label: 'Perfil'
                   )
                 ]
               )
