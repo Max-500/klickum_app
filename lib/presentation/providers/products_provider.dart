@@ -59,7 +59,7 @@ class ProductsNotifier extends AsyncNotifier<List<Product>> {
   }
 }
 
-final loadMoreProductsErrorProvider =NotifierProvider<LoadMoreProductsErrorNotifier, Object?>(LoadMoreProductsErrorNotifier.new);
+final loadMoreProductsErrorProvider = NotifierProvider<LoadMoreProductsErrorNotifier, Object?>(LoadMoreProductsErrorNotifier.new);
 class LoadMoreProductsErrorNotifier extends Notifier<Object?> {
   @override
   Object? build() => null;

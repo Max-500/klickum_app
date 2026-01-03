@@ -50,6 +50,14 @@ class AuthDatasourceImpl implements AuthDatasource {
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('access_token', json['access_token']);
+
+    final url2 = Uri.parse('$baseURL/me');
+    final response2 = await http.get(url2, headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${json['access_token']}'});
+    final json2 = jsonDecode(response2.body);
+
+    if (response2.statusCode != 200) throw Exception(Helper.extractErrorMessage(json, 'Algo sucedio mal, intentalo mas tarde'));
+
+    prefs.setString('id', json2['id']);
   }
 
 }

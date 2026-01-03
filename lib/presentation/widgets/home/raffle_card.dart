@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/domain/entities/raffle.dart';
+import 'package:klicum/presentation/providers/raffles_provider.dart';
 
-class RaffleCard extends StatelessWidget {
+class RaffleCard extends ConsumerWidget {
   final Raffle raffle;
 
   const RaffleCard({super.key, required this.raffle});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -20,7 +22,10 @@ class RaffleCard extends StatelessWidget {
     final bodyLargeStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white, overflow: TextOverflow.ellipsis) ?? const TextStyle(color: Colors.white, overflow: TextOverflow.ellipsis);
 
     return GestureDetector(
-      onTap: () => context.push('/raffle', extra: raffle),
+      onTap: () {
+        ref.read(raffleTicketIDProvider.notifier).setRaffleID(raffle.id);
+        context.push('/raffle', extra: raffle);
+      },
       child: Container(
         height: screenHeight * 0.15,
         width: screenWidth * 0.5,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:klicum/config/constants/exceptions.dart';
 import 'package:klicum/domain/entities/presentation/raffle_data.dart';
 import 'package:klicum/domain/entities/raffle.dart';
+import 'package:klicum/domain/entities/ticket.dart';
 import 'package:klicum/presentation/providers/products_provider.dart';
 import 'package:klicum/presentation/providers/repositories/raffle_repository_provider.dart';
 
@@ -50,4 +51,67 @@ class RaffleNotifier extends AsyncNotifier<List<Raffle>> {
   }
 
   Future<RaffleData> fetchRaffles({required int page}) async => ref.read(raffleRepositoryProvider).getRaffles(page: page);
+}
+
+final raffleTicketIDProvider = NotifierProvider<RaffleTicketNotifier, String>(RaffleTicketNotifier.new);
+class RaffleTicketNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+
+  void setRaffleID(String id) => state = id;
+}
+
+final raffleTicketsProvider = AsyncNotifierProvider<RaffleTicketsNotifier, Map<String, Ticket>>(RaffleTicketsNotifier.new);
+
+class RaffleTicketsNotifier extends AsyncNotifier<Map<String, Ticket>> {
+
+  @override
+  FutureOr<Map<String, Ticket>> build() async {
+    final id = ref.read(raffleTicketIDProvider.notifier).state;
+    return await ref.read(raffleRepositoryProvider).getRafflesTickets(id: id);
+  }
+
+  void toggleSinglePossibleTicket(String key) {
+    if (!state.hasValue) return;
+
+    final current = state.value!;
+    final updated = Map<String, Ticket>.from(current);
+
+    final ticket = updated[key];
+    final exists = ticket != null;
+    final isMyTicket = ticket?.isMyTicket ?? false;
+    final isAssigned = (ticket?.id ?? 'no-id') != 'no-id';
+
+    // Si está asignado/vendido o es de otro -> no hacer nada
+    if (isAssigned) return;
+    if (exists && !isMyTicket) return;
+
+    // Si ya era mi posible -> lo quito (toggle off)
+    if (exists && isMyTicket) {
+      updated.remove(key);
+      state = AsyncData(updated);
+      return;
+    }
+
+    // Si voy a seleccionar uno nuevo:
+    // 1) borro cualquier otro "posible" mío (para que solo haya 1)
+    final keysToRemove = <String>[];
+    updated.forEach((k, t) {
+      final isPossibleMine = t.isMyTicket && t.id == 'no-id';
+      if (isPossibleMine) keysToRemove.add(k);
+    });
+    for (final k in keysToRemove) {
+      updated.remove(k);
+    }
+
+    // 2) agrego el nuevo
+    updated[key] = Ticket(
+      code: key,
+      isMyTicket: true,
+      id: 'no-id',
+      isActive: false,
+    );
+
+    state = AsyncData(updated);
+  }
 }
