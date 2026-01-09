@@ -38,14 +38,14 @@ class CountriesSheet extends ConsumerWidget {
                   child: countriesAsync.when(
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (e, st) => NoData(),
-                    data: (list) => ListView.separated(
+                    data: (countries) => ListView.separated(
                       separatorBuilder: (_, _) => const SizedBox(height: 10),
-                      itemCount: list.length,
+                      itemCount: countries.length,
                       itemBuilder: (context, index) => InputTile(
-                        title: list[index].name,
+                        title: countries[index].name,
                         trailing: Icon(Icons.chevron_right,  color: Colors.white.withValues(alpha: 0.7)),
                         focusedBorderColor: AppStyle.primaryColor,
-                        onTap: () => context.pop('${list[index].id}|${list[index].name}')
+                        onTap: () => context.pop(countries[index])
                       )
                     )
                   )

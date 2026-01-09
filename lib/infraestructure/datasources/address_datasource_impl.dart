@@ -52,10 +52,20 @@ class AddressDatasourceImpl implements AddressDatasource {
 
     final url = Uri.parse('${Enviroment.baseURL}/user/address');
 
-    final response = await http.post(url, headers: {
+    final response = await http.post(
+      url, 
+      headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token'
-    });
+      },
+      body: jsonEncode({
+        'zipcode': zipCode,
+        'streetNumber': streetNumber,
+        'streetName': streetName,
+        'countryId': country,
+        'cityName': city
+      })
+    );
 
     if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en saveAddress');
     if (response.statusCode != 201) throw Exception('Error al guardar la dirección');

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/domain/entities/raffle.dart';
-import 'package:klicum/presentation/screens/address/address_screen.dart';
 import 'package:klicum/presentation/screens/address/select_address_screen.dart';
 import 'package:klicum/presentation/screens/screens.dart';
 
@@ -34,7 +33,7 @@ GoRouter getRouter() => GoRouter(
     GoRoute(path: SignUpScreen.name,  pageBuilder: (context, state) => _buildFadePage(state, SignUpScreen())),
     GoRoute(path: '/raffle', pageBuilder: (context, state) => _buildFadePage(state, RaffeScreen(raffle: state.extra as Raffle))),
     GoRoute(path: '/select-address', pageBuilder: (context, state) => _buildFadePage(state, SelectAddressScreen())),
-    GoRoute(path: '/create-address', pageBuilder: (context, state) => _buildFadePage(state, AddressScreen())),
+    GoRoute(path: CreateAddressScreen.name, pageBuilder: (context, state) => _buildFadePage(state, CreateAddressScreen())),
     StatefulShellRoute.indexedStack(
       pageBuilder: (context, state, navigationShell) => _buildFadePage(state, MainView(navigationShell: navigationShell)),
       branches: [

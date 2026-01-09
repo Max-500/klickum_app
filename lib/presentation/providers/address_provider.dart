@@ -88,6 +88,19 @@ class AddressNotifier extends AsyncNotifier<List<Address>> {
     }
   }
 
+  void addAddress(Address address) {
+    final current = state.asData?.value;
+
+    if (current == null) {
+      ref.invalidateSelf();
+      return;
+    }
+
+    final withoutDup = current.where((a) => a.id != address.id).toList();
+
+    state = AsyncData([address, ...withoutDup]);
+  }
+
   Future<AddressData> fetchAddress(int page) async => await ref.read(addressRepositoryProvider).getAddress(page: page);
 }
 
