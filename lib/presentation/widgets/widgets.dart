@@ -6,6 +6,7 @@ export 'shared/action_text.dart';
 export 'shared/auto_welcome.dart';
 export 'shared/button.dart';
 export 'shared/input_field.dart';
+export 'shared/input_tile.dart';
 export 'shared/fancy_background.dart';
 export 'shared/sign_fancy_background.dart';
 export 'shared/my_title.dart';

@@ -7,6 +7,10 @@ class InputField extends StatefulWidget {
   final String? Function(String?)? validator;
   final TextEditingController? controller;
   final bool isPassword;
+  final bool readOnly;
+  final bool showCursor;
+  final VoidCallback? callback;
+  final Function(String)? onChanged;
 
   final TextStyle? textStyle;
 
@@ -28,7 +32,6 @@ class InputField extends StatefulWidget {
   final Color? errorBorderColor;
   final double errorBorderWith;
   final double errorBorderColorOpacity;
-
   
   final double borderRadius;
 
@@ -41,6 +44,10 @@ class InputField extends StatefulWidget {
     this.validator,
     this.controller,
     this.isPassword = false,
+    this.readOnly = false,
+    this.showCursor = false,
+    this.callback,
+    this.onChanged,
 
     this.textStyle,
 
@@ -86,6 +93,10 @@ class _InputFieldState extends State<InputField> {
     final labelLargeStyle = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
 
     return TextFormField(
+      onTap: widget.callback,
+      onChanged: widget.onChanged,
+      showCursor: widget.showCursor,
+      readOnly: widget.readOnly,
       keyboardType: widget.keyboardType,
       autovalidateMode: widget.autoValidateMode ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
       obscureText: _obscure,

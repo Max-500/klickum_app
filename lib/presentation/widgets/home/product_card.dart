@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:klicum/config/constants/types.dart';
 import 'package:klicum/domain/entities/product.dart';
+import 'package:klicum/presentation/providers/cart_provider.dart';
 import '../widgets.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   final Product product;
 
   const ProductCard({super.key, required this.product});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
     final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
 
     final bodyLargeStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white) ?? const TextStyle(color: Colors.white);
@@ -77,7 +79,8 @@ class ProductCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Button(
-                  callback: product.productStatus == ProductStatus.available ? () async {
+                  callback: product.productStatus == ProductStatus.available ? () {
+                    ref.read(myCartProvider.notifier).addProduct(product);
                     
                   } : null,
                   text: product.productStatus == ProductStatus.available ?  'Añadir Carrito' : 'No hay Stock',

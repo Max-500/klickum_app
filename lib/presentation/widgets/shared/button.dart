@@ -11,6 +11,9 @@ class Button extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labelLargeStyle = Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.black, fontWeight: FontWeight.w600);
+
+
     return ElevatedButton(
       style: ButtonStyle(
         backgroundColor: backgroundColor == null ? null : WidgetStateProperty.resolveWith((states) {
@@ -27,7 +30,7 @@ class Button extends StatelessWidget {
         )
       ),
       onPressed: callback, 
-      child: Text(text, style: style)
+      child: Text(text, style: style ?? labelLargeStyle)
     );
   }
 }

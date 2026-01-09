@@ -19,7 +19,7 @@ class ProductDatasourceImpl implements ProductDatasource {
 
     final url = Uri.parse(baseURL).replace(queryParameters: {
       'page': page.toString(),
-      'limit': 2.toString(),
+      'limit': limit.toString(),
       'query': query,
       'promoted': isPromoted.toString(),
       'category': category,

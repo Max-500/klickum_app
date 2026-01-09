@@ -55,7 +55,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
     isWarning: Helper.isNetworkError(error),
     text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
     duration: Helper.isNetworkError(error) ? const Duration(days: 1) : null,
-  );      
+  );
   
 
   @override
@@ -141,7 +141,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
               height: (screenHeight * 0.125) + 32,
               child: asyncRaffles.when(
                 data: (data) => ListView.separated(
-                  
                   controller: scrollControllerRafles,
                   scrollDirection: Axis.horizontal,
                   itemCount: data.length,
