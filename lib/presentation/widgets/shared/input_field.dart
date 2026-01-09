@@ -158,7 +158,7 @@ class _InputFieldState extends State<InputField> {
           vertical: 15,
           horizontal: 20
         )
-      ),
+      )
     );
   }
 }
