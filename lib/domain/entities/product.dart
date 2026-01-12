@@ -18,9 +18,10 @@ class Product {
 
   final Category category;
   final List<Variant> variants;
+  final Variant? variantSelected;
 
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  Product({required this.id, required this.name, required this.description, required this.amount, required this.price, required this.isPromoted, required this.image, required this.productGroup, required this.productType, required this.productStatus, required this.category, required this.variants, required this.createdAt, required this.updatedAt, required this.isActive});
+  Product({required this.id, required this.name, required this.description, required this.amount, required this.price, required this.isPromoted, required this.image, required this.productGroup, required this.productType, required this.productStatus, required this.category, required this.variants, required this.createdAt, required this.updatedAt, required this.isActive, this.variantSelected});
 }

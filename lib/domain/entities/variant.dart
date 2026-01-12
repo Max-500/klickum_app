@@ -1,9 +1,9 @@
 class Variant {
-  final String id;
+  final int id;
   final String sku;
   final double price;
   final int amount;
-  final int size;
+  final String? size;
   final DateTime createdAt;
   final DateTime updatedAt;
 

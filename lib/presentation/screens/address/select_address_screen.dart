@@ -1,10 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/domain/entities/address.dart';
 import 'package:klicum/presentation/providers/address_provider.dart';
+import 'package:klicum/presentation/providers/cart_provider.dart';
+import 'package:klicum/presentation/providers/repositories/order_repository_provider.dart';
 import 'package:klicum/presentation/widgets/address/address_card.dart';
-
 import '../../widgets/widgets.dart';
 
 class SelectAddressScreen extends ConsumerStatefulWidget {
@@ -15,6 +19,7 @@ class SelectAddressScreen extends ConsumerStatefulWidget {
 }
 
 class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
+  bool isLoading = false;
   Address? addressSelected;
 
   @override
@@ -25,6 +30,9 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
     final headLineSmallStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white) ?? const TextStyle(color: Colors.white);
     
     final asyncAddress = ref.watch(addressProvider);
+    final cartProducts = ref.watch(myCartProvider);
+
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
       extendBody: true,
@@ -83,7 +91,37 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                   width: double.infinity,
                   height: screenHeight * 0.05,
                   child: Button(
-                    callback: () {}, 
+                    callback: () async {
+                      if (addressSelected == null || isLoading) return;
+
+                      try {
+                        setState(() => isLoading = true);
+                        await ref.read(orderRepositoryProvider).createOrder(variants: cartProducts, addressID: addressSelected!.id);
+                        if (!mounted) return;
+                        ref.read(myCartProvider).clear();
+                        context.pop();
+                        ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(Helper.getSnackbar(
+                          text: 'Compra realizada correctamente',
+                          isSuccess: true,
+                          isWarning: false,
+                          color: colors.primary,
+                          duration: const Duration(seconds: 5),
+                        ));
+                      } catch(error) {
+                        debugPrint(error.toString());
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(Helper.getSnackbar(
+                          text: 'Error al realizar la compra',
+                          isSuccess: false,
+                          isWarning: Helper.isNetworkError(error),
+                          color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
+                          duration: const Duration(seconds: 5),
+                        ));
+
+                      } finally {
+                        if(mounted) setState(() => isLoading = false);
+                      }
+                    }, 
                     text: 'Continuar'
                   )
                 ),

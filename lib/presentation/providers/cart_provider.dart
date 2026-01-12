@@ -1,37 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:klicum/domain/entities/presentation/cart_product.dart';
-import 'package:klicum/domain/entities/product.dart';
+import 'package:klicum/domain/entities/variant.dart';
 
-
-final myCartProvider = NotifierProvider<MyCartProductsNotifier, Map<String, CartProduct>>(MyCartProductsNotifier.new);
-class MyCartProductsNotifier extends Notifier <Map<String, CartProduct>>{
+final myCartProvider = NotifierProvider<MyCartProductsNotifier, Map<int, CartProduct>>(MyCartProductsNotifier.new);
+class MyCartProductsNotifier extends Notifier <Map<int, CartProduct>>{
   @override
-  Map<String, CartProduct> build() => {};
+  Map<int, CartProduct> build() => {};
 
-  void addProduct(Product product) {
-    final updated = Map<String, CartProduct>.from(state);
+  void addProduct(Variant variant, double? price, String? name) {
+    final updated = Map<int, CartProduct>.from(state);
 
-    if (updated.containsKey(product.id)) {
-      final cartProduct = updated[product.id]!;
-      updated[product.id] = cartProduct.copyWith(amount: cartProduct.amount + 1);
+    final current = updated[variant.id];
+
+    if (current != null) {
+      updated[variant.id] = current.copyWith(
+        amount: current.amount + 1,
+      );
     } else {
-      updated[product.id] = CartProduct(amount: 1, product: product);
+      updated[variant.id] = CartProduct(
+        amount: 1,
+        variant: variant,
+        price: price!,
+        name: name!
+      );
     }
 
     state = updated;
   }
 
-  void increment(String id) {
-    final updated = Map<String, CartProduct>.from(state);
-    final current = updated[id];
-    if (current == null) return;
-
-    updated[id] = current.copyWith(amount: current.amount + 1);
-    state = updated;
-  }
-
-  void decrement(String id) {
-    final updated = Map<String, CartProduct>.from(state);
+  void decrement(int id) {
+    final updated = Map<int, CartProduct>.from(state);
     final current = updated[id];
     if (current == null) return;
 
@@ -43,4 +41,6 @@ class MyCartProductsNotifier extends Notifier <Map<String, CartProduct>>{
 
     state = updated;
   }
+
+  void clear() => state = {};
 }

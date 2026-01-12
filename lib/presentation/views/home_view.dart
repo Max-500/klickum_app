@@ -6,7 +6,6 @@ import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/presentation/providers/products_provider.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
-import 'package:klicum/presentation/widgets/shared/no_data.dart';
 import 'package:klicum/presentation/widgets/widgets.dart';
 
 class HomeView extends ConsumerStatefulWidget {

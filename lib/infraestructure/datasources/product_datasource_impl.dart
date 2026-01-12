@@ -20,9 +20,9 @@ class ProductDatasourceImpl implements ProductDatasource {
     final url = Uri.parse(baseURL).replace(queryParameters: {
       'page': page.toString(),
       'limit': limit.toString(),
-      'query': query,
-      'promoted': isPromoted.toString(),
-      'category': category,
+      'query': '',
+      'promoted': '',
+      'category': '',
     });
 
     final response = await http.get(url, headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'});
