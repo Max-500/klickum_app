@@ -5,10 +5,13 @@ import 'package:http/http.dart' as http;
 import 'package:klicum/config/constants/enviroment.dart';
 import 'package:klicum/config/constants/exceptions.dart';
 import 'package:klicum/domain/datasources/raffle_datasource.dart';
+import 'package:klicum/domain/entities/presentation/my_raffle_data.dart';
 import 'package:klicum/domain/entities/presentation/raffle_data.dart';
 import 'package:klicum/domain/entities/ticket.dart';
+import 'package:klicum/infraestructure/mappers/my_raffle_mapper.dart';
 import 'package:klicum/infraestructure/mappers/raffle_mapper.dart';
 import 'package:klicum/infraestructure/mappers/ticket_mapper.dart';
+import 'package:klicum/infraestructure/models/my_raffle_response.dart';
 import 'package:klicum/infraestructure/models/raffle_response.dart';
 import 'package:klicum/infraestructure/models/ticket_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -113,6 +116,31 @@ class RaffleDatasourceImpl implements RaffleDatasource {
     final ticketResponse = TicketResponse.fromJson(json, userID);
 
     return TicketMapper.ticketResponseToEntity(ticketResponse);
+  }
+
+  @override
+  Future<MyRaffleData> getRafflesByUser({int page = 1, int limit = 100}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final token = prefs.getString('access_token') ?? 'no-token';
+
+    final url = Uri.parse('${Enviroment.baseURL}/ticket/history').replace(queryParameters: {
+      'page': page.toString(),
+      'limit': limit.toString()
+    });
+
+    final response = await http.get(url, headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'});
+
+    if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en getRafflesByUser');
+    if (response.statusCode != 200) throw Exception('Error al obtener los tickets, intentalo mas tarde');
+
+    final json = jsonDecode(response.body);
+
+    final myRafflesResponse = (json['items'] as List<dynamic>? ?? []).map((item) => MyRaffleResponse.fromJson(item)).toList();
+
+    final myRaffles = myRafflesResponse.map((myRaffleResponse) => MyRaffleMapper.myRaffleResponseToEntity(myRaffleResponse)).toList();
+    
+    return MyRaffleData(totalPages: json['meta']['totalPages'], myRaffles: myRaffles);
   }
 
 }

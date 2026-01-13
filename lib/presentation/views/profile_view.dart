@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/config/constants/helper.dart';
+import 'package:klicum/presentation/providers/raffles_provider.dart';
 import 'package:klicum/presentation/providers/user_provider.dart';
 import 'package:klicum/presentation/widgets/widgets.dart';
 
@@ -26,6 +27,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     final labelSmallStyle = Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600) ?? const TextStyle(fontWeight: FontWeight.w600);
     
     final asyncMe = ref.watch(meProvider);
+    final asyncMyRaffles = ref.watch(myRafflesProvider);
 
     return SingleChildScrollView(
       child: Column(
@@ -134,12 +136,16 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           const SizedBox(height: 10),
           SizedBox(
             height: (screenHeight * 0.125) + 32,
-            child: ListView.separated(
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              itemCount: 10,
-              separatorBuilder: (context, index) => SizedBox(width: screenWidth * 0.05),
-              itemBuilder: (context, index) => MyRaffleCard()
+            child: asyncMyRaffles.when(
+              data: (myRaffles) => ListView.separated(
+                shrinkWrap: true,
+                scrollDirection: Axis.horizontal,
+                itemCount: myRaffles.length,
+                separatorBuilder: (context, index) => SizedBox(width: screenWidth * 0.05),
+                itemBuilder: (context, index) => MyRaffleCard(myRaffle: myRaffles[index])
+              ), 
+              error: (error, stackTrace) => Text(error.toString(), style: TextStyle(color: Colors.white)), 
+              loading: () => const CircularProgressIndicator(),
             )
           ),
           const SizedBox(height: 20),

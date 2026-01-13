@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:klicum/config/constants/exceptions.dart';
+import 'package:klicum/domain/entities/my_raffle.dart';
+import 'package:klicum/domain/entities/presentation/my_raffle_data.dart';
 import 'package:klicum/domain/entities/presentation/raffle_data.dart';
 import 'package:klicum/domain/entities/raffle.dart';
 import 'package:klicum/domain/entities/ticket.dart';
@@ -8,7 +10,6 @@ import 'package:klicum/presentation/providers/products_provider.dart';
 import 'package:klicum/presentation/providers/repositories/raffle_repository_provider.dart';
 
 final raffleProvider = AsyncNotifierProvider<RaffleNotifier, List<Raffle>>(RaffleNotifier.new);
-
 class RaffleNotifier extends AsyncNotifier<List<Raffle>> {
   int currentPage = 1;
   int totalPages = 0;
@@ -136,5 +137,52 @@ class RaffleTicketsNotifier extends AsyncNotifier<Map<String, Ticket>> {
       throw Exception(e.toString());
     }
   }
+}
 
+final myRafflesProvider = AsyncNotifierProvider<MyRafflesNotifier, List<MyRaffle>>(MyRafflesNotifier.new);
+
+class MyRafflesNotifier extends AsyncNotifier<List<MyRaffle>> {
+  int currentPage = 1;
+  int totalPages = 0;
+
+  bool isLoadingMore = false;
+
+  @override
+  FutureOr<List<MyRaffle>> build() async {
+    final data = await fetchMyRaffles(page: 1);
+
+    currentPage = 2;
+    totalPages = data.totalPages;
+
+    return data.myRaffles;
+  }
+
+  Future<void> loadMoreRaffles() async {
+    if (isLoadingMore) return;
+    if (currentPage > totalPages && totalPages != 0) return;
+
+    isLoadingMore = true;
+
+    try {
+      final data = await fetchMyRaffles(page: currentPage);
+      //TODO: loadErrorProvider
+      //* ref.read(loadMoreProductsErrorProvider.notifier).clear();
+      currentPage++;
+      totalPages = data.totalPages;
+
+      final previous = state.value ?? const <MyRaffle>[];
+      state = AsyncData([...previous, ...data.myRaffles]);
+    } catch (e, st) {
+      //TODO: loadErrorProvider
+      //ref.read(loadMoreProductsErrorProvider.notifier).setError(e);
+      if (state.hasValue && (state.value?.isNotEmpty ?? false) && e is! SessionExpiredException) return;
+    
+      state = AsyncError(e, st);
+    } finally {
+      isLoadingMore = false;
+    }
+
+  }
+
+  Future<MyRaffleData> fetchMyRaffles({required int page}) async => ref.read(raffleRepositoryProvider).getRafflesByUser(page: page);
 }

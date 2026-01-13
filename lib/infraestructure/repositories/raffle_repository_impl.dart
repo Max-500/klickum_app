@@ -1,4 +1,5 @@
 import 'package:klicum/domain/datasources/raffle_datasource.dart';
+import 'package:klicum/domain/entities/presentation/my_raffle_data.dart';
 import 'package:klicum/domain/entities/presentation/raffle_data.dart';
 import 'package:klicum/domain/entities/ticket.dart';
 import 'package:klicum/domain/repositories/raffle_repository.dart';
@@ -16,4 +17,7 @@ class RaffleRepositoryImpl implements RaffleRepository {
   
   @override
   Future<Ticket> buyTicket({required String id, required String code}) async => await datasource.buyTicket(id: id, code: code);
+
+  @override
+  Future<MyRaffleData> getRafflesByUser({int page = 1, int limit = 100}) async => await datasource.getRafflesByUser(page: page, limit: limit);
 }
