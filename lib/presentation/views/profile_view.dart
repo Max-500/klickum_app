@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/config/constants/helper.dart';
+import 'package:klicum/presentation/providers/order_provider.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
 import 'package:klicum/presentation/providers/user_provider.dart';
 import 'package:klicum/presentation/widgets/widgets.dart';
@@ -28,136 +29,161 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     
     final asyncMe = ref.watch(meProvider);
     final asyncMyRaffles = ref.watch(myRafflesProvider);
+    final asyncOrders = ref.watch(orderProvider);
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Mi Perfil', style: displaySmallStyle),
-          const SizedBox(height: 20),
-          Text('Usuario', style: subtitleStyle),
-          asyncMe.when(
-            data: (me) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(me.username, style: bodyMediumStyle),
-                const SizedBox(height: 10),
-                Text('Correo Electronico', style: subtitleStyle),
-                Text(me.email, style: bodyMediumStyle),
-                const SizedBox(height: 10),
-                Text('Balance', style: subtitleStyle),
-                Text('${me.balance.toStringAsFixed(2)}€', style: displayMediumStyle),
-              ]
-            ), 
-            error: (error, stackTrace) => Text(error.toString(), style: bodyMediumStyle), 
-            loading: () => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('', style: bodyMediumStyle),
-                const SizedBox(height: 10),
-                Text('Correo Electronico', style: subtitleStyle),
-                Text('', style: bodyMediumStyle),
-                const SizedBox(height: 10),
-                Text('Balance', style: subtitleStyle),
-                Text('', style: displayMediumStyle),
-              ]
-            )
-          ),
-
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: screenHeight * 0.05,
-                width: screenWidth * 0.425,
-                child: Button(
-                  callback: (){}, 
-                  text: 'Recargar Saldo',
-                  style: labelSmallStyle.copyWith(color: Colors.black)
+              Text('Mi Perfil', style: displaySmallStyle),
+              const SizedBox(height: 20),
+              Text('Usuario', style: subtitleStyle),
+
+              asyncMe.when(
+                data: (me) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(me.username, style: bodyMediumStyle),
+                    const SizedBox(height: 10),
+                    Text('Correo Electronico', style: subtitleStyle),
+                    Text(me.email, style: bodyMediumStyle),
+                    const SizedBox(height: 10),
+                    Text('Balance', style: subtitleStyle),
+                    Text('${me.balance.toStringAsFixed(2)}€', style: displayMediumStyle)
+                  ]
+                ),
+                error: (error, stackTrace) => Text(error.toString(), style: bodyMediumStyle),
+                loading: () => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('', style: bodyMediumStyle),
+                    const SizedBox(height: 10),
+                    Text('Correo Electronico', style: subtitleStyle),
+                    Text('', style: bodyMediumStyle),
+                    const SizedBox(height: 10),
+                    Text('Balance', style: subtitleStyle),
+                    Text('', style: displayMediumStyle)
+                  ]
                 )
               ),
-              SizedBox(
-                height: screenHeight * 0.05,
-                width: screenWidth * 0.425,
-                child: Button(
-                  callback: () => Helper.handleTokenExpired(), 
-                  text: 'Cerrar Sesión',
-                  style: labelSmallStyle.copyWith(color: Colors.white),
-                  backgroundColor: Colors.white.withValues(alpha: 0.1),
-                  borderColor: Colors.white.withValues(alpha: 0.15)
-                )
-              )
-            ]
-          ),
 
-          const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0E150F),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withAlpha(8), width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(45),
-                  blurRadius: 18,
-                  offset: const Offset(0, 10),
-                )
-              ]
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Acciones Rápidas", style: subtitleStyle.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 10),
-                QuickActionTile(
-                  icon: Icons.location_on_rounded,
-                  title: "Mis Direcciones",
-                  subtitle: "Administra tus direcciones de entrega",
-                  onTap: () => context.push('/select-address', extra: false),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    height: screenHeight * 0.05,
+                    width: screenWidth * 0.425,
+                    child: Button(
+                      callback: () {},
+                      text: 'Recargar Saldo',
+                      style: labelSmallStyle.copyWith(color: Colors.black)
+                    )
+                  ),
+                  SizedBox(
+                    height: screenHeight * 0.05,
+                    width: screenWidth * 0.425,
+                    child: Button(
+                      callback: () => Helper.handleTokenExpired(),
+                      text: 'Cerrar Sesión',
+                      style: labelSmallStyle.copyWith(color: Colors.white),
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
+                      borderColor: Colors.white.withValues(alpha: 0.15)
+                    )
+                  )
+                ]
+              ),
+
+              const SizedBox(height: 20),
+
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0E150F),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withAlpha(8), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(45),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10)
+                    )
+                  ]
                 ),
-                const SizedBox(height: 10),
-                QuickActionTile(
-                  icon: Icons.lock_rounded,
-                  title: "Cambiar Contraseña",
-                  subtitle: "Actualiza tu contraseña de forma segura",
-                  onTap: () {}
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Acciones Rápidas", style: subtitleStyle.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 10),
+                    QuickActionTile(
+                      icon: Icons.location_on_rounded,
+                      title: "Mis Direcciones",
+                      subtitle: "Administra tus direcciones de entrega",
+                      onTap: () => context.push('/select-address', extra: false)
+                    ),
+                    const SizedBox(height: 10),
+                    QuickActionTile(
+                      icon: Icons.lock_rounded,
+                      title: "Cambiar Contraseña",
+                      subtitle: "Actualiza tu contraseña de forma segura",
+                      onTap: () {}
+                    )
+                  ]
                 )
-              ]
-            )
-          ),
+              ),
 
-          const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-          Text('Mis Rifas', style: subtitleStyle),
+              Text('Mis Rifas', style: subtitleStyle),
+              const SizedBox(height: 10)
+            ]
+          )
+        ),
 
-          const SizedBox(height: 10),
-          SizedBox(
-            height: (screenHeight * 0.125) + 32,
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: (screenHeight * 0.2) + 20,
             child: asyncMyRaffles.when(
               data: (myRaffles) => ListView.separated(
-                shrinkWrap: true,
                 scrollDirection: Axis.horizontal,
                 itemCount: myRaffles.length,
                 separatorBuilder: (context, index) => SizedBox(width: screenWidth * 0.05),
                 itemBuilder: (context, index) => MyRaffleCard(myRaffle: myRaffles[index])
-              ), 
-              error: (error, stackTrace) => Text(error.toString(), style: TextStyle(color: Colors.white)), 
-              loading: () => const CircularProgressIndicator(),
+              ),
+              error: (error, stackTrace) =>Text(error.toString(), style: const TextStyle(color: Colors.white)),
+              loading: () => const Center(child: CircularProgressIndicator())
             )
-          ),
-          const SizedBox(height: 20),
-          Text('Mis Pedidos', style: subtitleStyle),
-      
-          ...List.generate(
-            10, 
-            (index) => MyOrderCard()
-          ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom)
-        ]
-      )
+          )
+        ),
+
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              Text('Mis Pedidos', style: subtitleStyle),
+              const SizedBox(height: 10),
+            ]
+          )
+        ),
+
+        asyncOrders.when(
+          data: (orders) => SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => MyOrderCard(order: orders[index]),
+              childCount: orders.length,
+            ),
+          ), 
+          error: (error, stackTrace) => SliverToBoxAdapter(child: Text(error.toString())), 
+          loading: () => SliverToBoxAdapter(child: CircularProgressIndicator()),
+        ),
+
+        SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.bottom))
+      ]
     );
+
   }
 }

@@ -4,5 +4,8 @@ class CategoryResponse {
 
   CategoryResponse({required this.id, required this.name});
 
-  factory CategoryResponse.fromJson(Map<String, dynamic> json) => CategoryResponse(id: json['id'], name: json['name']);
+  factory CategoryResponse.fromJson(Map<String, dynamic> json) => CategoryResponse(
+    id: (json['id'] ?? '').toString(),
+    name: (json['name'] ?? '').toString(),
+  );
 }

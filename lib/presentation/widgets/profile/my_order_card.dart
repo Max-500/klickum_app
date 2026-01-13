@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:klicum/config/constants/helper.dart';
+import 'package:klicum/config/constants/types.dart';
 import 'package:klicum/config/style/app_style.dart';
+import 'package:klicum/domain/entities/order.dart';
 
 class MyOrderCard extends StatelessWidget {
-  const MyOrderCard({super.key});
+  final Order order;
+
+  const MyOrderCard({super.key, required this.order});
 
   @override
   Widget build(BuildContext context) {
-    final data = ['Zapatillas x 1', 'Zapatillas x 1', 'Zapatillas x 1'];
-
     final subtitleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w200, overflow: TextOverflow.ellipsis) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w200, overflow: TextOverflow.ellipsis);
     final miniTitleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.white) ?? const TextStyle();
 
@@ -40,29 +43,29 @@ class MyOrderCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(242, 132, 5, 1),
+                      color: order.status.color,
                       borderRadius: BorderRadius.circular(15)
                     ),
-                    child: Text('Pendiente', style: subtitleStyle.copyWith(color: Color.fromRGBO(8, 13, 0, 1), fontWeight: FontWeight.normal)),
+                    child: Text(order.status.labelEs, style: subtitleStyle.copyWith(color: Color.fromRGBO(8, 13, 0, 1), fontWeight: FontWeight.normal)),
                   )
                 ]
               ),
               const SizedBox(height: 10),
-              ...data.map((e) => Padding(
+              ...order.products.map((product) => Padding(
                   padding: const EdgeInsets.only(top: 5),
-                  child: Text(e, style: miniTitleStyle)
+                  child: Text('${product.name} x ${product.amount}', style: miniTitleStyle)
               )),
               const SizedBox(height: 20),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('17/07/2025 - 16:45', style: subtitleStyle),
+                  Text(Helper.formatFecha(order.updatedAt), style: subtitleStyle),
                   const Spacer(),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text('Total', style: subtitleStyle),
-                      Text('8.5€', style: miniTitleStyle)
+                      Text('${order.total.toStringAsFixed(2)}€', style: miniTitleStyle)
                     ]
                   )
                 ]

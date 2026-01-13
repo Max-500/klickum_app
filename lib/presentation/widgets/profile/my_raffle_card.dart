@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/domain/entities/my_raffle.dart';
 
@@ -19,7 +20,7 @@ class MyRaffleCard extends StatelessWidget {
 
     return IntrinsicWidth(
       child: Container(
-        constraints: BoxConstraints(minHeight: screenHeight * 0.15, minWidth: screenWidth * 0.4),
+        constraints: BoxConstraints(minHeight: screenHeight * 0.15, minWidth: screenWidth * 0.55),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -66,7 +67,9 @@ class MyRaffleCard extends StatelessWidget {
                 )
               ]
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
+            Text('Fecha', style: miniTitle),
+            Text(Helper.formatFecha(myRaffle.updatedAt), style: bodyLargeStyle),
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,

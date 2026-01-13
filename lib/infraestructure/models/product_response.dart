@@ -47,4 +47,30 @@ class ProductResponse {
     createdAt: DateTime.tryParse((json['created_at'])) ?? DateTime.now(),
     updatedAt: DateTime.tryParse((json['updated_at'])) ?? DateTime.now(),
   );
+
+  factory ProductResponse.fromOrderJson(Map<String, dynamic> json) {
+    final VariantResponse variantResponse = VariantResponse.fromJson(json['productVariant']);
+
+    return ProductResponse(
+      id: json['productVariant']['product']['id'],
+      name: json['productVariant']['product']['name'],
+      description: json['productVariant']['product']['description'],
+      amount: int.tryParse((json['amount'] ?? '').toString()) ?? -1,
+      price: double.tryParse((json['productVariant']['product']['price'] ?? '').toString()) ?? -1,
+      isPromoted: json['productVariant']['product']['promoted'],
+      isActive: json['productVariant']['product']['isActive'],
+
+      image: '',
+
+      productGroup: ProductGroupExtension.fromString(json['productVariant']['product']['group']),
+      productType: ProductTypeExtension.fromString(json['productVariant']['product']['metadata']['productType']),
+      productStatus: ProductStatusExtension.fromString(json['productVariant']['product']['status']['name']),
+
+      category: CategoryResponse.fromJson((json['productVariant']['product']['category'])),
+      variants: [variantResponse],
+
+      createdAt: DateTime.tryParse((json['productVariant']['product']['created_at'])) ?? DateTime.now(),
+      updatedAt: DateTime.tryParse((json['productVariant']['product']['updated_at'])) ?? DateTime.now(),
+    );
+  }
 }

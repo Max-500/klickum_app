@@ -16,4 +16,13 @@ class AddressResponse {
     country: json['city']['country']['nombre'], 
     city: json['city']['name']
   );
+
+  factory AddressResponse.fromOrderJson(Map<String, dynamic> json) => AddressResponse(
+    id: (json['id'] ?? '').toString(),
+    zipCode: (json['zipcode'] ?? '').toString(),
+    streetNumber: (json['streetNumber'] ?? '').toString(),
+    streetName: (json['streetName'] ?? '').toString(),
+    country: (json['city']?['country']?['name'] ?? '').toString(),
+    city: (json['city']?['name'] ?? '').toString(),
+  );
 }

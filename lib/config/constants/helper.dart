@@ -100,4 +100,24 @@ class Helper {
       _handling = false;
     }
   }
+
+  static String formatFecha(DateTime date) {
+    const dias = [
+      'lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'
+    ];
+
+    const meses = [
+      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+      'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+    ];
+
+    final diaSemana = dias[date.weekday - 1];
+    final dia = date.day.toString().padLeft(2, '0');
+    final mes = meses[date.month - 1];
+    final hora = date.hour.toString().padLeft(2, '0');
+    final minuto = date.minute.toString().padLeft(2, '0');
+
+    return '$diaSemana, $dia $mes, $hora:$minuto';
+  }
+
 }
