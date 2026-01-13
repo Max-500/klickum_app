@@ -32,7 +32,7 @@ GoRouter getRouter() => GoRouter(
     GoRoute(path: SignInScreen.name, pageBuilder: (context, state) => _buildFadePage(state, SignInScreen())),
     GoRoute(path: SignUpScreen.name,  pageBuilder: (context, state) => _buildFadePage(state, SignUpScreen())),
     GoRoute(path: '/raffle', pageBuilder: (context, state) => _buildFadePage(state, RaffeScreen(raffle: state.extra as Raffle))),
-    GoRoute(path: '/select-address', pageBuilder: (context, state) => _buildFadePage(state, SelectAddressScreen())),
+    GoRoute(path: '/select-address', pageBuilder: (context, state) => _buildFadePage(state, SelectAddressScreen(isFromCart: state.extra as bool))),
     GoRoute(path: CreateAddressScreen.name, pageBuilder: (context, state) => _buildFadePage(state, CreateAddressScreen())),
     StatefulShellRoute.indexedStack(
       pageBuilder: (context, state, navigationShell) => _buildFadePage(state, MainView(navigationShell: navigationShell)),

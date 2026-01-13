@@ -1,6 +1,8 @@
 import 'package:klicum/domain/datasources/auth_datasource.dart';
+import 'package:klicum/domain/entities/user_auth.dart';
+import 'package:klicum/domain/repositories/auth_repository.dart';
 
-class AuthRepositoryImpl implements AuthDatasource {
+class AuthRepositoryImpl implements AuthRepository {
   final AuthDatasource datasource;
 
   AuthRepositoryImpl({required this.datasource});
@@ -10,5 +12,8 @@ class AuthRepositoryImpl implements AuthDatasource {
   
   @override
   Future<void> signIn({required String username, required String password}) async => datasource.signIn(username: username, password: password);
+
+  @override
+  Future<UserAuth> getMe() async => await datasource.getMe();
 
 }

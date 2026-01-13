@@ -117,7 +117,7 @@ class CartView extends ConsumerWidget {
                 width: double.infinity,
                 child: Button(
                   callback: () {
-                    if (cartProducts.isNotEmpty) context.push('/select-address');
+                    if (cartProducts.isNotEmpty) context.push('/select-address', extra: true);
                   },
                   text: 'Realizar Pedido', 
                   style: labelLargeStyle

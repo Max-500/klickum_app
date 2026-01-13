@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:klicum/config/constants/enviroment.dart';
 import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/domain/datasources/auth_datasource.dart';
+import 'package:klicum/domain/entities/user_auth.dart';
+import 'package:klicum/infraestructure/mappers/user_auth_mapper.dart';
+import 'package:klicum/infraestructure/models/user_auth_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthDatasourceImpl implements AuthDatasource {
@@ -60,4 +63,18 @@ class AuthDatasourceImpl implements AuthDatasource {
     prefs.setString('id', json2['id']);
   }
 
+  @override
+  Future<UserAuth> getMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? 'no-token';
+
+    final url = Uri.parse('$baseURL/me');
+    final response = await http.get(url, headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'});
+    final json = jsonDecode(response.body);
+
+    if (response.statusCode != 200) throw Exception(Helper.extractErrorMessage(json, 'Algo sucedio mal, intentalo mas tarde'));
+
+    final userAuthResponse = UserAuthResponse.fromJson(json);
+    return UserAuthMapper.userAuthResponseToEntity(userAuthResponse);
+  }
 }

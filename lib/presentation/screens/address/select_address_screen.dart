@@ -12,7 +12,9 @@ import 'package:klicum/presentation/widgets/address/address_card.dart';
 import '../../widgets/widgets.dart';
 
 class SelectAddressScreen extends ConsumerStatefulWidget {
-  const SelectAddressScreen({super.key});
+  final bool isFromCart;
+
+  const SelectAddressScreen({super.key, required this.isFromCart});
 
   @override
   ConsumerState<SelectAddressScreen> createState() => _SelectAddressScreenState();
@@ -87,7 +89,7 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                   )
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
+                widget.isFromCart ? SizedBox(
                   width: double.infinity,
                   height: screenHeight * 0.05,
                   child: Button(
@@ -124,7 +126,7 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                     }, 
                     text: 'Continuar'
                   )
-                ),
+                ) : SizedBox.shrink(),
                 SizedBox(height: MediaQuery.of(context).padding.bottom)
               ]
             )
