@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/presentation/providers/order_provider.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
+import 'package:klicum/presentation/providers/repositories/recharge_repository_provider.dart';
 import 'package:klicum/presentation/providers/user_provider.dart';
 import 'package:klicum/presentation/widgets/widgets.dart';
 
@@ -78,7 +80,16 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     height: screenHeight * 0.05,
                     width: screenWidth * 0.425,
                     child: Button(
-                      callback: () {},
+                      callback: () async {
+                        final intent = await ref.read(rechargeRepositoryProvider).createIntent(amount: 100);
+                        await Stripe.instance.initPaymentSheet(
+                          paymentSheetParameters: SetupPaymentSheetParameters(
+                            paymentIntentClientSecret: intent.clientSecret,
+                            merchantDisplayName: 'Klickum'
+                          )
+                        );
+                        await Stripe.instance.presentPaymentSheet();
+                      },
                       text: 'Recargar Saldo',
                       style: labelSmallStyle.copyWith(color: Colors.black)
                     )

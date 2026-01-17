@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:klicum/config/router/app_router.dart';
 import 'package:klicum/config/style/app_style.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Stripe.publishableKey = 'pk_test_51SgUge2HGsMzG2cQ0cHlS8lVIBfy9PJOBKCuDhghyfHr3LQG0qq7uanIcqEm4w6OZWoqvXctg1RA0R9b9mcK5p0700WFhK0YTY';
+  await Stripe.instance.applySettings();
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
