@@ -121,3 +121,5 @@ extension OrderStatusExtension on OrderStatus {
     }
   }
 }
+
+enum AuthStatus { unauthenticated, authenticated }

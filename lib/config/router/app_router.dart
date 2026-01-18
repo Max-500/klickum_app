@@ -27,9 +27,9 @@ CustomTransitionPage _buildFadePage(GoRouterState state, Widget child) {
   );
 }
 
-GoRouter getRouter() => GoRouter(
+GoRouter getRouter(bool isAuth) => GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: '/',
+  initialLocation: isAuth ? '/' : SignInScreen.name,
   routes: [
     GoRoute(path: SignInScreen.name, pageBuilder: (context, state) => _buildFadePage(state, SignInScreen())),
     GoRoute(path: SignUpScreen.name,  pageBuilder: (context, state) => _buildFadePage(state, SignUpScreen())),

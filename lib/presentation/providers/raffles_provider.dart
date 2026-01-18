@@ -42,7 +42,9 @@ class RaffleNotifier extends AsyncNotifier<List<Raffle>> {
       state = AsyncData([...previous, ...data.raffles]);
     } catch (e, st) {
       ref.read(loadMoreProductsErrorProvider.notifier).setError(e);
-      if (state.hasValue && (state.value?.isNotEmpty ?? false) && e is! SessionExpiredException) return;
+
+      if (e is SessionExpiredException) return;
+      if (state.hasValue && (state.value?.isNotEmpty ?? false)) return;
     
       state = AsyncError(e, st);
     } finally {

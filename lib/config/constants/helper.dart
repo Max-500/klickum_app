@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart';
 import 'package:klicum/config/router/app_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Helper {
   static String extractErrorMessage(dynamic json, String? text) {
@@ -83,9 +82,6 @@ class Helper {
   static bool _handling = false;
 
   static void handleTokenExpired() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-
     final ctx = rootNavigatorKey.currentContext;
     if (_handling || ctx == null || !ctx.mounted) return;
     
@@ -95,7 +91,7 @@ class Helper {
     _handling = true;
     try {
       if (!ctx.mounted) return;
-      ctx.go('/sign-in');
+      router.go('/sign-in');
     } finally {
       _handling = false;
     }

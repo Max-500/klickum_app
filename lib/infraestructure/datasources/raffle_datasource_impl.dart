@@ -17,15 +17,21 @@ import 'package:klicum/infraestructure/models/ticket_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RaffleDatasourceImpl implements RaffleDatasource {
+  final Future<void> Function() onUnauthorized;
   final String baseURL = '${Enviroment.baseURL}/raffle';
+
+  RaffleDatasourceImpl({required this.onUnauthorized});
 
   @override
   Future<RaffleData> getRaffles({int page = 1, int limit = 100}) async {
     final prefs = await SharedPreferences.getInstance();
 
     final token = prefs.getString('access_token');
-
-    if (token == null) throw SessionExpiredException(message: 'Sesión Terminada en getRaffles');
+  
+    if (token == null) {
+      await onUnauthorized();
+      throw SessionExpiredException(message: 'Sesión Terminada en getRaffles');
+    }
 
     final url = Uri.parse(baseURL).replace(queryParameters: {
       'page': page.toString(),
@@ -37,7 +43,11 @@ class RaffleDatasourceImpl implements RaffleDatasource {
       'Authorization': 'Bearer $token'
     });
 
-    if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en getRaffles');
+    if (response.statusCode == 401) {
+      await onUnauthorized();
+      throw SessionExpiredException(message: 'Sesión Terminada en getRaffles');
+    }
+    
     if (response.statusCode != 200) throw Exception('Error al obtener las rifas');
 
     final json = jsonDecode(response.body);
@@ -62,7 +72,10 @@ class RaffleDatasourceImpl implements RaffleDatasource {
     final token = prefs.getString('access_token');
     final userID = prefs.getString('id');
 
-    if (token == null || userID == null) throw SessionExpiredException(message: 'Sesión Terminada en getRafflesTickets');
+    if (token == null || userID == null) {
+      await onUnauthorized();
+      throw SessionExpiredException(message: 'Sesión Terminada en getRafflesTickets');
+    }
 
     final url = Uri.parse('$baseURL/$id');
 
