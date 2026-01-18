@@ -18,8 +18,7 @@ void main() async {
 
   Stripe.publishableKey = 'pk_test_51SgUge2HGsMzG2cQ0cHlS8lVIBfy9PJOBKCuDhghyfHr3LQG0qq7uanIcqEm4w6OZWoqvXctg1RA0R9b9mcK5p0700WFhK0YTY';
   await Stripe.instance.applySettings();
-
-  runApp(ProviderScope(child: MyApp(isAuth: token == null)));
+  runApp(ProviderScope(child: MyApp(isAuth: token != null)));
 }
 
 class MyApp extends ConsumerWidget {

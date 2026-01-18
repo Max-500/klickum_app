@@ -74,15 +74,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
     ref.listen(raffleProvider, (previous, next) => next.whenOrNull(
       error: (error, stackTrace) {
         if (!mounted) return;
-        if (error is SessionExpiredException) {
-          Helper.handleTokenExpired();
-          return;
-        }
+        if (error is SessionExpiredException) return;
 
         ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
       }
     ));
-
 
     ref.listen(productProvider, (previous, next) => next.whenOrNull(
       error: (error, stackTrace) {
@@ -108,9 +104,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
         try {
           ref.read(loadMoreProductsErrorProvider.notifier).clear();
           ref.invalidate(raffleProvider);
-          await ref.read(raffleProvider.future);
           ref.invalidate(productProvider);
-          await ref.read(productProvider.future);
         // ignore: empty_catches
         } catch (e) {}
       },
@@ -146,8 +140,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   separatorBuilder: (context, index) => SizedBox(width: screenWidth * 0.05),
                   itemBuilder: (context, index) => RaffleCard(raffle: data[index])
                 ), 
-                error: (error, stackTrace) => NoData(height: screenHeight * 0.05,), 
-                loading: () => const CircularProgressIndicator(),
+                error: (error, stackTrace) => NoData(height: screenHeight * 0.05), 
+                loading: () => ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 5,
+                  separatorBuilder: (_, _) => SizedBox(width: screenWidth * 0.05),
+                  itemBuilder: (_, _) => RaffleCardSkeleton()
+                )
               )
             )
           ),
