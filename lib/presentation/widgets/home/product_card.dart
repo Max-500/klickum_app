@@ -41,6 +41,8 @@ class ProductCard extends ConsumerWidget {
                 Image.network(
                   product.image,
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) => loadingProgress == null ? child : ImageCardSkeleton(),
+                  errorBuilder: (_, _, _) => GenericErrorImage()
                 )
               ]
             )
@@ -57,10 +59,7 @@ class ProductCard extends ConsumerWidget {
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              product.description,
-              style: bodySmallStyle
-            )
+            child: Text(product.description, style: bodySmallStyle)
           ),
 
           const SizedBox(height: 10),
@@ -121,8 +120,8 @@ class ProductCard extends ConsumerWidget {
                   style: labelMediumStyle.copyWith(color: product.productStatus == ProductStatus.available ?Colors.black : Colors.white),
                   backgroundColor: product.productStatus == ProductStatus.available ? null : Color.fromRGBO(123, 35, 17, 1)
                 )
-              ),
-            ],
+              )
+            ]
           ),
 
           const SizedBox(height: 10)

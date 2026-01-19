@@ -168,7 +168,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
               itemBuilder: (context, index) => ProductCard(product: data[index])
             ),
             error: (error, stackTrace) => SliverFillRemaining(hasScrollBody: false, child: NoData()),
-            loading: () => SliverFillRemaining(hasScrollBody: false, child: const Center(child: CircularProgressIndicator()))
+            loading: () => SliverMasonryGrid.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childCount: 7,
+              itemBuilder: (context, index) => ProductCardSkeleton(height: index.isEven ? screenHeight * 0.4 : screenHeight * 0.4 + 20)
+            )
           ),
 
           SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.bottom))
