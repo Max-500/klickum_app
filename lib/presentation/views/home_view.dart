@@ -32,6 +32,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
       if (error == null || error is SessionExpiredException) return;
 
       final colors = Theme.of(context).colorScheme;
+
+      String msg = '';
+
+      if (errorPrev != null) msg = Helper.normalizeError(errorPrev);
+      msg = '$msg\n${Helper.normalizeError(error)}';
       
       ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
         Helper.getSnackbar(

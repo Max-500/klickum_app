@@ -10,7 +10,10 @@ import 'package:klicum/infraestructure/models/product_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductDatasourceImpl implements ProductDatasource {
+  final Future<void> Function() onUnauthorized;
   final String baseURL = '${Enviroment.baseURL}/v2/product';
+
+  ProductDatasourceImpl({required this.onUnauthorized});
 
   @override
   Future<ProductData> getProducts({int page = 1, int limit = 100, String query = '', bool isPromoted = false, String category = ''}) async {
@@ -27,7 +30,10 @@ class ProductDatasourceImpl implements ProductDatasource {
 
     final response = await http.get(url, headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'});
 
-    if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en getProducts');
+    if (response.statusCode == 401) {
+      await onUnauthorized();
+      throw SessionExpiredException(message: 'Sesión Terminada en getProducts');
+    }
     if (response.statusCode != 200) throw Exception('Error al obtener los productos');
 
     final json = jsonDecode(response.body);

@@ -1,10 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:klicum/config/constants/exceptions.dart';
 import 'package:klicum/config/constants/helper.dart';
-import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/domain/entities/raffle.dart';
 import 'package:klicum/domain/entities/ticket.dart';
+import 'package:klicum/presentation/providers/error_providers.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
 import '../widgets/widgets.dart';
 
@@ -18,14 +19,41 @@ class RaffeScreen extends ConsumerStatefulWidget {
 }
 
 class _RaffleViewState extends ConsumerState<RaffeScreen> {
+  late final ProviderSubscription _errSub;
   bool isLoading = false;
 
-  SnackBar getSnackbar(Object error, Color color) => Helper.getSnackbar(
-    color: color,
-    isWarning: Helper.isNetworkError(error),
-    text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
-    duration: Helper.isNetworkError(error) ? const Duration(days: 1) : const Duration(seconds: 3),
-  );
+  @override
+  void initState() {
+    super.initState();
+    _errSub = ref.listenManual<Object?>(raffleTicketsErrorProvider, (errorPrev, error) {
+      if (!mounted) return;
+
+      if (error == null || error is SessionExpiredException) return;
+
+      final colors = Theme.of(context).colorScheme;
+
+      String msg = '';
+
+      if (errorPrev != null) msg = Helper.normalizeError(errorPrev);
+      msg = '$msg\n${Helper.normalizeError(error)}';
+      
+      ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+        Helper.getSnackbar(
+          color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
+          isWarning: Helper.isNetworkError(error),
+          text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
+          duration: const Duration(seconds: 5)
+        )
+      );
+      ref.read(homeErrorProvider.notifier).clear();
+    });
+  }
+
+  @override
+  void dispose() {
+    _errSub.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +63,6 @@ class _RaffleViewState extends ConsumerState<RaffeScreen> {
     final displayMediumStyle = Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
 
     final displaySmallStyle = Theme.of(context).textTheme.displaySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
-
-    final labelLargeStyle = Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
 
     final subtitleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
       color: Colors.white,
@@ -64,30 +90,17 @@ class _RaffleViewState extends ConsumerState<RaffeScreen> {
 
     final asyncTickets = ref.watch(raffleTicketsProvider);
 
-    ref.listen(raffleTicketsProvider, (previous, next) => next.whenOrNull(
-      error: (error, stackTrace) {
-        if (!mounted) return;
-        if (error is SessionExpiredException) {
-          Helper.handleTokenExpired();
-          return;
-        }
-
-        ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
-      }
-    ));
-
     return Scaffold(
       extendBody: true,
       body: Stack(
         children: [
           const FancyBackground(),
-
           Positioned(
             top: screenHeight * 0.05,
             child: SizedBox(
               width: screenWidth,
-              child: const Center(child: MyTitle()),
-            ),
+              child: const Center(child: MyTitle())
+            )
           ),
 
           Positioned.fill(
@@ -99,8 +112,8 @@ class _RaffleViewState extends ConsumerState<RaffeScreen> {
                 try {
                   ref.invalidate(raffleTicketsProvider);
                   await ref.read(raffleTicketsProvider.future);
-                // ignore: empty_catches
                 } catch (e) {
+                  if (mounted) ref.read(raffleTicketsErrorProvider.notifier).setError(e);
                 }
               },
               child: CustomScrollView(
@@ -138,42 +151,19 @@ class _RaffleViewState extends ConsumerState<RaffeScreen> {
                         slivers: [
                           SliverPadding(
                             padding: EdgeInsets.zero,
-                            sliver: SliverGrid(
-                              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: screenWidth * 0.1,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 1
-                              ),
+                            sliver: SliverGridRaffleTicketBooklet(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
-                                  final key = (index + 1).toString();
-                                  final ticket = data[key];
+                                  final myKey = (index + 1).toString();
+                                  final ticket = data[myKey];
               
                                   final exists = ticket != null;
                                   final isMyTicket = ticket?.isMyTicket ?? false;
               
-                                  return GestureDetector(
-                                    onTap: () => ref.read(raffleTicketsProvider.notifier).toggleSinglePossibleTicket(key),
-                                    child: Container(
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: isMyTicket
-                                            ? AppStyle.primaryColor
-                                            : exists
-                                                ? Colors.transparent
-                                                : Colors.white.withAlpha(20),
-                                        border: Border.all(
-                                          color: isMyTicket ? AppStyle.primaryColor : Colors.white.withAlpha(15)
-                                        ),
-                                        borderRadius: BorderRadius.circular(8)
-                                      ),
-                                      child: Text(key, style: labelLargeStyle)
-                                    )
-                                  );
+                                  return TicketContainer(myKey: myKey, isMyTicket: isMyTicket, exists: exists);
                                 },
                                 childCount: widget.raffle.amount
-                              )
+                              ),
                             )
                           ),
               
@@ -192,40 +182,43 @@ class _RaffleViewState extends ConsumerState<RaffeScreen> {
                                   ]
                                 ),
                                 const SizedBox(height: 20),
-              
                                 hasSelection
                                   ? SizedBox(
                                       width: double.infinity,
                                       height: screenHeight * 0.05,
                                       child: Button(
                                         text: 'Comprar Número',
-                                        style: subtitleStyle.copyWith(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        style: subtitleStyle.copyWith(color: Colors.black, fontWeight: FontWeight.w600),
                                         callback: () async {
                                           try {
                                             if (isLoading) return;
                                             isLoading = true;
                                             await ref.read(raffleTicketsProvider.notifier).purchaseTicket(raffleId: widget.raffle.id, code: selected.code);
                                             if (!mounted) return;
-                                            // ignore: use_build_context_synchronously
-                                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(Helper.getSnackbar(
-                                              color: colors.primary,
-                                              isWarning: false,
-                                              text: 'Número adquirido correctamente',
-                                              duration: const Duration(seconds: 5),
-                                              isSuccess: true
-                                            ));
+                                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                                              Helper.getSnackbar(
+                                                color: colors.primary,
+                                                isWarning: false,
+                                                text: 'Número adquirido correctamente',
+                                                duration: const Duration(seconds: 5),
+                                                isSuccess: true
+                                              )
+                                            );
                                           } catch(error) {
                                             if (!mounted) return;
-                                            // ignore: use_build_context_synchronously
-                                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
+                                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                                              Helper.getSnackbar(
+                                                color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
+                                                isWarning: Helper.isNetworkError(error),
+                                                text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : 'Error al comprar el ticket',
+                                                duration: const Duration(seconds: 5)
+                                              )
+                                            );
                                           } finally {
                                             isLoading = false;
                                           }
-                                        },
-                                      ),
+                                        }
+                                      )
                                     )
                                   : const SizedBox.shrink(),
               
@@ -236,13 +229,19 @@ class _RaffleViewState extends ConsumerState<RaffeScreen> {
                         ]
                       );
                     },
-                    error: (e, st) => SliverToBoxAdapter(child: SizedBox.shrink()),
-                    loading: () => const SliverToBoxAdapter(
-                      child: Center(child: CircularProgressIndicator())
+                    error: (e, st) => SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: screenHeight * 0.4, 
+                        child: NoData(msg: Helper.isNetworkError(e) ? 'Sin conexión a internet' : Helper.normalizeError(e))
+                      )
+                    ),
+                    loading: () => SliverPadding(
+                      padding: EdgeInsets.zero,
+                      sliver: SliverGridRaffleTicketBooklet(childCount: widget.raffle.amount, child: RaffleTicketsSkeleton())
                     )
                   )
                 ]
-              ),
+              )
             )
           )
         ]

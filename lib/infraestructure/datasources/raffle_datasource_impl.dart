@@ -83,8 +83,11 @@ class RaffleDatasourceImpl implements RaffleDatasource {
       'Authorization': 'Bearer $token'
     });
 
-    if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en getRaffles');
-    if (response.statusCode != 200) throw Exception('Error al obtener la rifa');
+    if (response.statusCode == 401) {
+      await onUnauthorized();
+      throw SessionExpiredException(message: 'Sesión Terminada en getRaffles');
+    }
+    if (response.statusCode != 200) throw Exception('Error al obtener los tickets');
 
     final json = jsonDecode(response.body);
 

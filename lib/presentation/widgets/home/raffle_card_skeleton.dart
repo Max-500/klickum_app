@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:klicum/config/style/app_style.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:klicum/presentation/widgets/shared/my_shimmer.dart';
 
 class RaffleCardSkeleton extends StatelessWidget {
   const RaffleCardSkeleton({super.key});
@@ -10,9 +10,7 @@ class RaffleCardSkeleton extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Shimmer.fromColors(
-      baseColor: AppStyle.baseColor,
-      highlightColor: AppStyle.highlightColor,
+    return MyShimmer(
       child: Container(
         height: screenHeight * 0.15,
         width: screenWidth * 0.5,

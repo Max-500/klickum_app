@@ -15,15 +15,24 @@ class RaffleNotifier extends AsyncNotifier<List<Raffle>> {
   int totalPages = 0;
 
   bool isLoadingMore = false;
+  bool isFirstError = true;
 
   @override
   FutureOr<List<Raffle>> build() async {
-    final data = await fetchRaffles(page: 1);
-
-    currentPage = 2;
-    totalPages = data.totalPages;
-
-    return data.raffles;
+    try {
+      final data = await fetchRaffles(page: 1);
+      
+      currentPage = 2;
+      totalPages = data.totalPages;
+      
+      return data.raffles;
+    } catch (e, st) {
+      if (isFirstError) ref.read(homeErrorProvider.notifier).setError(e);
+      isFirstError = false;
+      if (e is SessionExpiredException) return const <Raffle>[];
+    
+      Error.throwWithStackTrace(e, st);
+    }
   }
 
   Future<void> loadMoreRaffles() async {
@@ -41,8 +50,8 @@ class RaffleNotifier extends AsyncNotifier<List<Raffle>> {
       final previous = state.value ?? const <Raffle>[];
       state = AsyncData([...previous, ...data.raffles]);
     } catch (e, st) {
-      ref.read(homeErrorProvider.notifier).setError(e);
-
+      if (isFirstError) ref.read(homeErrorProvider.notifier).setError(e);
+      isFirstError = false;
       if (e is SessionExpiredException) return;
       if (state.hasValue && (state.value?.isNotEmpty ?? false)) return;
     
@@ -67,11 +76,19 @@ class RaffleTicketNotifier extends Notifier<String> {
 final raffleTicketsProvider = AsyncNotifierProvider.autoDispose<RaffleTicketsNotifier, Map<String, Ticket>>(RaffleTicketsNotifier.new);
 
 class RaffleTicketsNotifier extends AsyncNotifier<Map<String, Ticket>> {
+  bool isFirstError = true;
 
   @override
   FutureOr<Map<String, Ticket>> build() async {
-    final id = ref.read(raffleTicketIDProvider.notifier).state;
-    return await ref.read(raffleRepositoryProvider).getRafflesTickets(id: id);
+    try {
+      final id = ref.read(raffleTicketIDProvider.notifier).state;
+      return await ref.read(raffleRepositoryProvider).getRafflesTickets(id: id);
+    } catch (e, st) {
+      if (isFirstError) ref.read(raffleTicketsErrorProvider.notifier).setError(e);
+      if (e is SessionExpiredException) return <String, Ticket>{};
+      isFirstError = false;
+      Error.throwWithStackTrace(e, st);
+    }
   }
 
   void toggleSinglePossibleTicket(String key) {
