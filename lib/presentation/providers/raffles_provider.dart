@@ -6,7 +6,7 @@ import 'package:klicum/domain/entities/presentation/my_raffle_data.dart';
 import 'package:klicum/domain/entities/presentation/raffle_data.dart';
 import 'package:klicum/domain/entities/raffle.dart';
 import 'package:klicum/domain/entities/ticket.dart';
-import 'package:klicum/presentation/providers/products_provider.dart';
+import 'package:klicum/presentation/providers/error_providers.dart';
 import 'package:klicum/presentation/providers/repositories/raffle_repository_provider.dart';
 
 final raffleProvider = AsyncNotifierProvider<RaffleNotifier, List<Raffle>>(RaffleNotifier.new);
@@ -34,14 +34,14 @@ class RaffleNotifier extends AsyncNotifier<List<Raffle>> {
 
     try {
       final data = await fetchRaffles(page: currentPage);
-      ref.read(loadMoreProductsErrorProvider.notifier).clear();
+      ref.read(homeErrorProvider.notifier).clear();
       currentPage++;
       totalPages = data.totalPages;
 
       final previous = state.value ?? const <Raffle>[];
       state = AsyncData([...previous, ...data.raffles]);
     } catch (e, st) {
-      ref.read(loadMoreProductsErrorProvider.notifier).setError(e);
+      ref.read(homeErrorProvider.notifier).setError(e);
 
       if (e is SessionExpiredException) return;
       if (state.hasValue && (state.value?.isNotEmpty ?? false)) return;

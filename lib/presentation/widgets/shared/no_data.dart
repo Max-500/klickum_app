@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class NoData extends StatelessWidget {
+  final String? msg;
   final double? height;
 
-  const NoData({super.key, this.height});
+  const NoData({super.key, this.height, this.msg});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class NoData extends StatelessWidget {
             size: height ?? screenHeight * 0.1
           ),
           Text(
-            'No hay productos',
+            msg ?? 'No hay productos',
             style: titleStyle.copyWith(
               color: Colors.white.withAlpha(85),
               fontWeight: FontWeight.w600

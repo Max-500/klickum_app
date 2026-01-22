@@ -28,10 +28,10 @@ class ProductDatasourceImpl implements ProductDatasource {
     final response = await http.get(url, headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'});
 
     if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en getProducts');
-    if (response.statusCode == 429) throw TooManyRequestException(message: 'PENDING');
     if (response.statusCode != 200) throw Exception('Error al obtener los productos');
 
     final json = jsonDecode(response.body);
+
     final productsResponse = (json['items'] as List<dynamic>? ?? []).map((item) {
       try {
         return ProductResponse.fromJson(item);

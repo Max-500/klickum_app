@@ -4,6 +4,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:klicum/config/constants/exceptions.dart';
 import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/style/app_style.dart';
+import 'package:klicum/presentation/providers/error_providers.dart';
 import 'package:klicum/presentation/providers/products_provider.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
 import 'package:klicum/presentation/widgets/widgets.dart';
@@ -19,10 +20,29 @@ class _HomeViewState extends ConsumerState<HomeView> {
   final scrollControllerRafles = ScrollController();
   final scrollControllerProducts = ScrollController();
 
+  late final ProviderSubscription _errSub;
 
   @override
   void initState() {
     super.initState();
+
+    _errSub = ref.listenManual<Object?>(homeErrorProvider, (errorPrev, error) {
+      if (!mounted) return;
+
+      if (error == null || error is SessionExpiredException) return;
+
+      final colors = Theme.of(context).colorScheme;
+      
+      ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+        Helper.getSnackbar(
+          color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
+          isWarning: Helper.isNetworkError(error),
+          text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
+          duration: Helper.isNetworkError(error) ? const Duration(days: 1) : const Duration(seconds: 5)
+        )
+      );
+      ref.read(homeErrorProvider.notifier).clear();
+    });
 
     scrollControllerRafles.addListener(() {
       if (!mounted) return;
@@ -35,6 +55,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     scrollControllerProducts.addListener(() {
       if (!mounted) return;
+      if (ref.read<Object?>(homeErrorProvider.notifier) != null) return;
 
       final max = scrollControllerProducts.position.maxScrollExtent;
       final offset = scrollControllerProducts.offset;
@@ -45,17 +66,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   void dispose() {
+    _errSub.close();
     scrollControllerProducts.dispose();
+    scrollControllerRafles.dispose();
     super.dispose();
   }
-
-  SnackBar getSnackbar(Object error, Color color) => Helper.getSnackbar(
-    color: color,
-    isWarning: Helper.isNetworkError(error),
-    text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
-    duration: Helper.isNetworkError(error) ? const Duration(days: 1) : null,
-  );
-  
 
   @override
   Widget build(BuildContext context) {
@@ -66,47 +81,20 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     final titleStyle = Theme.of(context).textTheme.titleLarge ?? const TextStyle();
 
-    final colors = Theme.of(context).colorScheme;
-
     final asyncRaffles = ref.watch(raffleProvider);
     final asyncProducts = ref.watch(productProvider);
-
-    ref.listen(raffleProvider, (previous, next) => next.whenOrNull(
-      error: (error, stackTrace) {
-        if (!mounted) return;
-        if (error is SessionExpiredException) return;
-
-        ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
-      }
-    ));
-
-    ref.listen(productProvider, (previous, next) => next.whenOrNull(
-      error: (error, stackTrace) {
-        if (!mounted) return;
-        if (error is SessionExpiredException) {
-          Helper.handleTokenExpired();
-          return;
-        }
-
-        ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
-      }
-    ));
-
-    ref.listen(loadMoreProductsErrorProvider, (prev, next) {
-      if (!mounted) return;
-      if (next == null || next is SessionExpiredException) return;
-      ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(next, Helper.isNetworkError(next) ? colors.tertiary : colors.error));
-      ref.read(loadMoreProductsErrorProvider.notifier).clear();
-    });
 
     return RefreshIndicator(
       onRefresh: () async {
         try {
-          ref.read(loadMoreProductsErrorProvider.notifier).clear();
+          ref.read(homeErrorProvider.notifier).clear();
           ref.invalidate(raffleProvider);
           ref.invalidate(productProvider);
-        // ignore: empty_catches
-        } catch (e) {}
+          await ref.read(raffleProvider.future);
+          if (mounted) await ref.read(productProvider.future);
+        } catch (e) {
+          if (mounted) ref.read(homeErrorProvider.notifier).setError(e);
+        }
       },
       child: CustomScrollView(
         controller: scrollControllerProducts,
@@ -133,14 +121,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
             child: SizedBox(
               height: (screenHeight * 0.125) + 32,
               child: asyncRaffles.when(
-                data: (data) => ListView.separated(
+                data: (data) => data.isEmpty ? SliverFillRemaining(hasScrollBody: false, child: NoData(msg: 'No hay rifas disponibles')) : ListView.separated(
                   controller: scrollControllerRafles,
                   scrollDirection: Axis.horizontal,
                   itemCount: data.length,
                   separatorBuilder: (context, index) => SizedBox(width: screenWidth * 0.05),
                   itemBuilder: (context, index) => RaffleCard(raffle: data[index])
                 ), 
-                error: (error, stackTrace) => NoData(height: screenHeight * 0.05), 
+                error: (error, stackTrace) => NoData(height: screenHeight * 0.05, msg: Helper.normalizeError(error)), 
                 loading: () => ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: 5,
@@ -160,19 +148,19 @@ class _HomeViewState extends ConsumerState<HomeView> {
           SliverToBoxAdapter(child: const SizedBox(height: 10)),
 
           asyncProducts.when(
-            data: (data) => data.isEmpty ? SliverFillRemaining(hasScrollBody: false, child: NoData()) : SliverMasonryGrid.count(
+            data: (data) => data.isEmpty ? SliverFillRemaining(hasScrollBody: false, child: NoData(msg: 'No hay productos disponibles')) : SliverMasonryGrid.count(
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
               childCount: data.length,
               itemBuilder: (context, index) => ProductCard(product: data[index])
             ),
-            error: (error, stackTrace) => SliverFillRemaining(hasScrollBody: false, child: NoData()),
+            error: (error, stackTrace) => SliverFillRemaining(hasScrollBody: false, child: NoData(msg: Helper.normalizeError(error))),
             loading: () => SliverMasonryGrid.count(
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childCount: 7,
+              childCount: 6,
               itemBuilder: (context, index) => ProductCardSkeleton(height: index.isEven ? screenHeight * 0.4 : screenHeight * 0.4 + 20)
             )
           ),

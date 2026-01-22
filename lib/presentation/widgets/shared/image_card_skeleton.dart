@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:klicum/config/style/app_style.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:klicum/presentation/widgets/shared/my_shimmer.dart';
 
 class ImageCardSkeleton extends StatelessWidget {
   const ImageCardSkeleton({super.key});
 
   @override
-  Widget build(BuildContext context) => Shimmer.fromColors(
-    baseColor: AppStyle.baseColor,
-    highlightColor: AppStyle.highlightColor,
+  Widget build(BuildContext context) => MyShimmer(
     child: Container(
       decoration: BoxDecoration(
         color: AppStyle.backgroundColorSkeleton,
