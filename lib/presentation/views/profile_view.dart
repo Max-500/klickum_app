@@ -1,8 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/config/constants/helper.dart';
+import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/presentation/providers/order_provider.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
 import 'package:klicum/presentation/providers/repositories/recharge_repository_provider.dart';
@@ -17,15 +21,52 @@ class ProfileView extends ConsumerStatefulWidget {
 }
 
 class _ProfileViewState extends ConsumerState<ProfileView> {
+  final scrollControllerRaffles = ScrollController();
+  final scrollControllerOrders = ScrollController();
+  final amountController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    scrollControllerRaffles.addListener(() {
+      if (!mounted) return;
+
+      final max = scrollControllerRaffles.position.maxScrollExtent;
+      final offset = scrollControllerRaffles.offset;
+
+      if (offset >= max - 300) ref.read(orderProvider.notifier).loadMoreOrders();
+    });
+
+    scrollControllerOrders.addListener(() {
+      if (!mounted) return;
+
+      final max = scrollControllerOrders.position.maxScrollExtent;
+      final offset = scrollControllerOrders.offset;
+
+      if (offset >= max - 300) ref.read(myRafflesProvider.notifier).loadMoreRaffles();
+    });
+  }
+
+  @override
+  void dispose() {
+    scrollControllerRaffles.dispose();
+    scrollControllerOrders.dispose();
+    amountController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    final colors = Theme.of(context).colorScheme;
+
     final displayMediumStyle = Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
     final displaySmallStyle = Theme.of(context).textTheme.displaySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
 
-    final subtitleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w200, overflow: TextOverflow.ellipsis) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w200, overflow: TextOverflow.ellipsis);    final bodyMediumStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle();
+    final subtitleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w200, overflow: TextOverflow.ellipsis) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w200, overflow: TextOverflow.ellipsis);    
+    final bodyMediumStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle();
 
     final labelSmallStyle = Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600) ?? const TextStyle(fontWeight: FontWeight.w600);
     
@@ -33,168 +74,297 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     final asyncMyRaffles = ref.watch(myRafflesProvider);
     final asyncOrders = ref.watch(orderProvider);
 
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Mi Perfil', style: displaySmallStyle),
-              const SizedBox(height: 20),
-              Text('Usuario', style: subtitleStyle),
-
-              asyncMe.when(
-                data: (me) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(me.username, style: bodyMediumStyle),
-                    const SizedBox(height: 10),
-                    Text('Correo Electronico', style: subtitleStyle),
-                    Text(me.email, style: bodyMediumStyle),
-                    const SizedBox(height: 10),
-                    Text('Balance', style: subtitleStyle),
-                    Text('${me.balance.toStringAsFixed(2)}€', style: displayMediumStyle)
-                  ]
-                ),
-                error: (error, stackTrace) => Text(error.toString(), style: bodyMediumStyle),
-                loading: () => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('', style: bodyMediumStyle),
-                    const SizedBox(height: 10),
-                    Text('Correo Electronico', style: subtitleStyle),
-                    Text('', style: bodyMediumStyle),
-                    const SizedBox(height: 10),
-                    Text('Balance', style: subtitleStyle),
-                    Text('', style: displayMediumStyle)
-                  ]
-                )
-              ),
-
-              const SizedBox(height: 20),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    height: screenHeight * 0.05,
-                    width: screenWidth * 0.425,
-                    child: Button(
-                      callback: () async {
-                        final intent = await ref.read(rechargeRepositoryProvider).createIntent(amount: 100);
-                        await Stripe.instance.initPaymentSheet(
-                          paymentSheetParameters: SetupPaymentSheetParameters(
-                            paymentIntentClientSecret: intent.clientSecret,
-                            merchantDisplayName: 'Klickum'
-                          )
-                        );
-                        await Stripe.instance.presentPaymentSheet();
-                      },
-                      text: 'Recargar Saldo',
-                      style: labelSmallStyle.copyWith(color: Colors.black)
-                    )
+    return RefreshIndicator(
+      onRefresh: () async {
+        try {
+          ref.invalidate(meProvider);
+          ref.invalidate(myRafflesProvider);
+          ref.invalidate(orderProvider);
+          await ref.read(meProvider.future);
+          if (mounted) await ref.read(myRafflesProvider.future);
+          if (mounted) await ref.read(orderProvider.future);
+        } catch (e) {
+          //TODO
+        }
+      },
+      child: CustomScrollView(
+        controller: scrollControllerOrders,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Mi Perfil', style: displaySmallStyle),
+                const SizedBox(height: 20),
+                Text('Usuario', style: subtitleStyle),
+      
+                asyncMe.when(
+                  data: (me) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(me.username, style: bodyMediumStyle),
+                      const SizedBox(height: 10),
+                      Text('Correo Electronico', style: subtitleStyle),
+                      Text(me.email, style: bodyMediumStyle),
+                      const SizedBox(height: 10),
+                      Text('Balance', style: subtitleStyle),
+                      Text('${me.balance.toStringAsFixed(2)}€', style: displayMediumStyle)
+                    ]
                   ),
-                  SizedBox(
-                    height: screenHeight * 0.05,
-                    width: screenWidth * 0.425,
-                    child: Button(
-                      callback: () => Helper.handleTokenExpired(),
-                      text: 'Cerrar Sesión',
-                      style: labelSmallStyle.copyWith(color: Colors.white),
-                      backgroundColor: Colors.white.withValues(alpha: 0.1),
-                      borderColor: Colors.white.withValues(alpha: 0.15)
-                    )
+                  error: (error, stackTrace) => Text(Helper.normalizeError(error), style: bodyMediumStyle),
+                  loading: () => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('', style: bodyMediumStyle),
+                      const SizedBox(height: 10),
+                      Text('Correo Electronico', style: subtitleStyle),
+                      Text('', style: bodyMediumStyle),
+                      const SizedBox(height: 10),
+                      Text('Balance', style: subtitleStyle),
+                      Text('', style: displayMediumStyle)
+                    ]
                   )
-                ]
-              ),
+                ),
+      
+                const SizedBox(height: 20),
+      
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.05,
+                      width: screenWidth * 0.425,
+                      child: Button(
+                        callback: () async {
+                          try {
+                            final amount = await showModalBottomSheet<int?>(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: AppStyle.backgroundColor,
+                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(18))),
+                              builder: (ctx) => SafeArea(
+                                top: false,
+                                child: AnimatedPadding(
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeOut,
+                                  padding: EdgeInsets.only(
+                                    left: screenWidth * 0.05,
+                                    right: screenWidth * 0.05,
+                                    top: 12,
+                                    bottom: MediaQuery.of(ctx).viewInsets.bottom + 12,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Center(
+                                        child: Container(
+                                          width: 44,
+                                          height: 4,
+                                          margin: const EdgeInsets.only(bottom: 14),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(20),
+                                            color: Colors.white24
+                                          )
+                                        )
+                                      ),
 
-              const SizedBox(height: 20),
+                                      InputField(
+                                        textInputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly,
+                                        ],
+                                        autoValidateMode: false,
+                                        labelText: 'Ingresa la cantidad a recargar',
+                                        keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                                        controller: amountController
+                                      ),
 
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0E150F),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withAlpha(8), width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(45),
-                      blurRadius: 18,
-                      offset: const Offset(0, 10)
+                                      const SizedBox(height: 20),
+
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: Button(
+                                          callback: () {
+                                            final amount = amountController.text.isNotEmpty ? int.parse(amountController.text) : null;
+                                            amountController.clear();
+                                            context.pop(amount);
+                                          },
+                                          text: 'Aceptar',
+                                          style: bodyMediumStyle.copyWith(color: Colors.black)
+                                        )
+                                      ),
+
+                                      const SizedBox(height: 10)
+                                    ]
+                                  )
+                                )
+                              )
+                            );
+
+                            if (amount == null) return;
+
+                            final intent = await ref.read(rechargeRepositoryProvider).createIntent(amount: amount);
+                            if (!mounted) return;
+                            await Stripe.instance.initPaymentSheet(
+                              paymentSheetParameters: SetupPaymentSheetParameters(
+                                style: ThemeMode.system,
+                                paymentIntentClientSecret: intent.clientSecret,
+                                merchantDisplayName: 'Klickum',
+                                appearance: const PaymentSheetAppearance(
+                                  colors: PaymentSheetAppearanceColors(
+                                    background: Color(0xFF0F1115),          // fondo principal
+                                    componentBackground: Color(0xFF1A1F2A), // cards/botones de métodos
+                                    componentBorder: Color(0xFF2A3342),
+                                    componentDivider: Color(0xFF2A3342),
+                                    primary: AppStyle.primaryColor,             // acentos
+                                    placeholderText: Color(0xFF8B94A5),
+                                    primaryText: Colors.black
+                                  ),
+                                  primaryButton: PaymentSheetPrimaryButtonAppearance(
+                                    colors: PaymentSheetPrimaryButtonTheme(
+                                      dark: PaymentSheetPrimaryButtonThemeColors(
+                                        background: AppStyle.primaryColor, //Color(0xFF00D26A),
+                                        text: Colors.black //Color(0xFF000000),
+                                      ),
+                                      light: PaymentSheetPrimaryButtonThemeColors(
+                                        background: AppStyle.primaryColor,
+                                        text: Colors.black
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            );
+                            if (!mounted) return;
+                            await Stripe.instance.presentPaymentSheet();
+                          } catch (error) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                              Helper.getSnackbar(
+                                color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
+                                isWarning: Helper.isNetworkError(error),
+                                text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : error is StripeException ? Helper.stripeMsgFrom(error) : Helper.normalizeError(error),
+                                duration: Helper.isNetworkError(error) ? const Duration(days: 1) : const Duration(seconds: 5)
+                              )
+                            );
+                          }
+                        },
+                        text: 'Recargar Saldo',
+                        style: labelSmallStyle.copyWith(color: Colors.black)
+                      )
+                    ),
+                    SizedBox(
+                      height: screenHeight * 0.05,
+                      width: screenWidth * 0.425,
+                      child: Button(
+                        callback: () => Helper.handleTokenExpired(),
+                        text: 'Cerrar Sesión',
+                        style: labelSmallStyle.copyWith(color: Colors.white),
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        borderColor: Colors.white.withValues(alpha: 0.15)
+                      )
                     )
                   ]
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Acciones Rápidas", style: subtitleStyle.copyWith(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 10),
-                    QuickActionTile(
-                      icon: Icons.location_on_rounded,
-                      title: "Mis Direcciones",
-                      subtitle: "Administra tus direcciones de entrega",
-                      onTap: () => context.push('/select-address', extra: false)
-                    ),
-                    const SizedBox(height: 10),
-                    QuickActionTile(
-                      icon: Icons.lock_rounded,
-                      title: "Cambiar Contraseña",
-                      subtitle: "Actualiza tu contraseña de forma segura",
-                      onTap: () {}
-                    )
-                  ]
-                )
-              ),
-
-              const SizedBox(height: 20),
-
-              Text('Mis Rifas', style: subtitleStyle),
-              const SizedBox(height: 10)
-            ]
-          )
-        ),
-
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: (screenHeight * 0.2) + 20,
-            child: asyncMyRaffles.when(
-              data: (myRaffles) => ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: myRaffles.length,
-                separatorBuilder: (context, index) => SizedBox(width: screenWidth * 0.05),
-                itemBuilder: (context, index) => MyRaffleCard(myRaffle: myRaffles[index])
-              ),
-              error: (error, stackTrace) =>Text(error.toString(), style: const TextStyle(color: Colors.white)),
-              loading: () => const Center(child: CircularProgressIndicator())
+      
+                const SizedBox(height: 20),
+      
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0E150F),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withAlpha(8), width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(45),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10)
+                      )
+                    ]
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Acciones Rápidas", style: subtitleStyle.copyWith(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 10),
+                      QuickActionTile(
+                        icon: Icons.location_on_rounded,
+                        title: "Mis Direcciones",
+                        subtitle: "Administra tus direcciones de entrega",
+                        onTap: () => context.push('/select-address', extra: false)
+                      ),
+                      const SizedBox(height: 10),
+                      QuickActionTile(
+                        icon: Icons.lock_rounded,
+                        title: "Cambiar Contraseña",
+                        subtitle: "Actualiza tu contraseña de forma segura",
+                        onTap: () {}
+                      )
+                    ]
+                  )
+                ),
+      
+                const SizedBox(height: 20),
+      
+                Text('Mis Rifas', style: subtitleStyle),
+                const SizedBox(height: 10)
+              ]
             )
-          )
-        ),
-
-        SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              Text('Mis Pedidos', style: subtitleStyle),
-              const SizedBox(height: 10),
-            ]
-          )
-        ),
-
-        asyncOrders.when(
-          data: (orders) => SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => MyOrderCard(order: orders[index]),
-              childCount: orders.length,
-            ),
-          ), 
-          error: (error, stackTrace) => SliverToBoxAdapter(child: Text(error.toString())), 
-          loading: () => SliverToBoxAdapter(child: CircularProgressIndicator()),
-        ),
-
-        SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.bottom))
-      ]
+          ),
+      
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: (screenHeight * 0.2) + 20,
+              child: asyncMyRaffles.when(
+                data: (myRaffles) => myRaffles.isEmpty ? NoData(msg: 'Aun no participas en ninguna rifa') : ListView.separated(
+                  controller: scrollControllerRaffles,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: myRaffles.length,
+                  separatorBuilder: (_, _) => SizedBox(width: screenWidth * 0.05),
+                  itemBuilder: (_, index) => MyRaffleCard(myRaffle: myRaffles[index])
+                ),
+                error: (error, stackTrace) => NoData(msg: Helper.normalizeError(error)),
+                loading: () => ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 6,
+                  separatorBuilder: (_, _) => SizedBox(width: screenWidth * 0.05),
+                  itemBuilder: (_, _) => MyRaffleCardSkeleton()
+                )
+              )
+            )
+          ),
+      
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                Text('Mis Pedidos', style: subtitleStyle),
+                const SizedBox(height: 10),
+              ]
+            )
+          ),
+      
+          asyncOrders.when(
+            data: (orders) => SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_, index) => MyOrderCard(order: orders[index]),
+                childCount: orders.length,
+              )
+            ), 
+            error: (error, stackTrace) => SliverToBoxAdapter(child: Text(Helper.normalizeError(error))), 
+            loading: () => SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_, _) => MyOrderCardSkeleton(),
+                childCount: 10
+              )
+            )
+          ),
+      
+          SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.bottom))
+        ]
+      ),
     );
-
   }
 }

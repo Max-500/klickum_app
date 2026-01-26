@@ -10,7 +10,10 @@ import 'package:klicum/infraestructure/models/user_auth_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthDatasourceImpl implements AuthDatasource {
+  final Future<void> Function() onUnauthorized;
   final String baseURL = '${Enviroment.baseURL}/auth';
+
+  AuthDatasourceImpl({required this.onUnauthorized});
 
   @override
   Future<void> signUp({required String username, required String email, required String phone, required String password}) async {
@@ -72,7 +75,10 @@ class AuthDatasourceImpl implements AuthDatasource {
     final response = await http.get(url, headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'});
     final json = jsonDecode(response.body);
 
-    if (response.statusCode != 200) throw Exception(Helper.extractErrorMessage(json, 'Algo sucedio mal, intentalo mas tarde'));
+    if (response.statusCode != 200) {
+      await onUnauthorized();
+      throw Exception(Helper.extractErrorMessage(json, 'Algo sucedio mal, intentalo mas tarde'));
+    }
 
     final userAuthResponse = UserAuthResponse.fromJson(json);
     return UserAuthMapper.userAuthResponseToEntity(userAuthResponse);

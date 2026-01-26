@@ -14,7 +14,7 @@ class OrderNotifier extends AsyncNotifier<List<Order>> {
 
   @override
   FutureOr<List<Order>> build() async {
-    final data = await fetchAddress(page: 1);
+    final data = await fetchOrders(page: 1);
 
     currentPage = 2;
     totalPages = data.totalPages;
@@ -22,14 +22,14 @@ class OrderNotifier extends AsyncNotifier<List<Order>> {
     return data.orders;
   }
 
-  Future<void> loadMoreProducts() async {
+  Future<void> loadMoreOrders() async {
     if (isLoadingMore) return;
     if (currentPage > totalPages && totalPages != 0) return;
 
     isLoadingMore = true;
 
     try {
-      final data = await fetchAddress(page: currentPage);
+      final data = await fetchOrders(page: currentPage);
       //ref.read(loadMoreProductsErrorProvider.notifier).clear();
       currentPage++;
       totalPages = data.totalPages;
@@ -47,5 +47,5 @@ class OrderNotifier extends AsyncNotifier<List<Order>> {
   }
 
 
-  Future<OrderData> fetchAddress({required int page}) async => await ref.read(orderRepositoryProvider).getOrders(page: page);
+  Future<OrderData> fetchOrders({required int page}) async => await ref.read(orderRepositoryProvider).getOrders(page: page);
 }

@@ -7,6 +7,7 @@ import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/presentation/providers/error_providers.dart';
 import 'package:klicum/presentation/providers/products_provider.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
+import 'package:klicum/presentation/providers/user_provider.dart';
 import 'package:klicum/presentation/widgets/widgets.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -32,11 +33,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
       if (error == null || error is SessionExpiredException) return;
 
       final colors = Theme.of(context).colorScheme;
-
-      String msg = '';
-
-      if (errorPrev != null) msg = Helper.normalizeError(errorPrev);
-      msg = '$msg\n${Helper.normalizeError(error)}';
       
       ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
         Helper.getSnackbar(
@@ -60,7 +56,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     scrollControllerProducts.addListener(() {
       if (!mounted) return;
-      if (ref.read<Object?>(homeErrorProvider.notifier) != null) return;
+      if (ref.read<Object?>(homeErrorProvider) != null) return;
 
       final max = scrollControllerProducts.position.maxScrollExtent;
       final offset = scrollControllerProducts.offset;
@@ -86,6 +82,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     final titleStyle = Theme.of(context).textTheme.titleLarge ?? const TextStyle();
 
+    final asyncMe = ref.watch(meProvider);
     final asyncRaffles = ref.watch(raffleProvider);
     final asyncProducts = ref.watch(productProvider);
 
@@ -106,11 +103,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
-            child: Row(
-              children: [
-                Text('Hola ', style: displaySmallStyle.copyWith(color: Colors.white)),
-                Text('Leonardo', style: displaySmallStyle.copyWith(color: AppStyle.primaryColor))
-              ]
+            child: asyncMe.when(
+              data: (user) => Row(
+                children: [
+                  Text('Hola ', style: displaySmallStyle.copyWith(color: Colors.white)),
+                  Text(user.username, style: displaySmallStyle.copyWith(color: AppStyle.primaryColor)),
+                ],
+              ), 
+              error: (error, stackTrace) => Text('Error al cargar los datos'), 
+              loading: () => Text(''),
             )
           ),
 
@@ -126,7 +127,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
             child: SizedBox(
               height: (screenHeight * 0.125) + 32,
               child: asyncRaffles.when(
-                data: (data) => data.isEmpty ? SliverFillRemaining(hasScrollBody: false, child: NoData(msg: 'No hay rifas disponibles')) : ListView.separated(
+                data: (data) => data.isEmpty ? Center(child: NoData(msg: 'No hay rifas disponibles')) : ListView.separated(
                   controller: scrollControllerRafles,
                   scrollDirection: Axis.horizontal,
                   itemCount: data.length,

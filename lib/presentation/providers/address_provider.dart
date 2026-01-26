@@ -5,6 +5,7 @@ import 'package:klicum/domain/entities/address.dart';
 import 'package:klicum/domain/entities/country.dart';
 import 'package:klicum/domain/entities/presentation/address_data.dart';
 import 'package:klicum/domain/entities/presentation/countries_data.dart';
+import 'package:klicum/presentation/providers/error_providers.dart';
 import 'package:klicum/presentation/providers/repositories/address_repository_provider.dart';
 
 final countriesProvider = AsyncNotifierProvider<CountriesNotifier, List<Country>>(CountriesNotifier.new);
@@ -47,39 +48,48 @@ class CountriesNotifier extends AsyncNotifier<List<Country>> {
   }
 }
 
-final addressProvider = AsyncNotifierProvider<AddressNotifier, List<Address>>(AddressNotifier.new);
+final addressProvider = AsyncNotifierProvider.autoDispose<AddressNotifier, List<Address>>(AddressNotifier.new);
 class AddressNotifier extends AsyncNotifier<List<Address>> {
   int currentPage = 1;
   int totalPages = 0;
 
   bool isLoadingMore = false;
+  bool isFirstError = true;
   
   @override
   FutureOr<List<Address>> build() async {
-    final data = await fetchAddress(1);
-
-    currentPage = 2;
-    totalPages = data.totalPages;
-
-    return data.address;
+    try {
+      final data = await fetchAddress(1);
+      
+      currentPage = 2;
+      totalPages = data.totalPages;
+      
+      return data.address;
+    } catch (e, st) {
+      if (isFirstError) ref.read(addressErrorProvider.notifier).setError(e);
+      isFirstError = false;
+      if (e is SessionExpiredException) return const <Address>[];
+    
+      Error.throwWithStackTrace(e, st);
+    }
   }
 
-  Future<void> loadMoreProducts() async {
+  Future<void> loadMoreAddress() async {
     if (isLoadingMore) return;
     if (currentPage > totalPages && totalPages != 0) return;
-
     isLoadingMore = true;
 
     try {
       final data = await fetchAddress(currentPage);
-      ref.read(loadMoreAddressErrorProvider.notifier).clear();
+      ref.read(addressErrorProvider.notifier).clear();
       currentPage++;
       totalPages = data.totalPages;
 
       final previous = state.value ?? const <Address>[];
       state = AsyncData([...previous, ...data.address]);
     } catch (e, st) {
-      ref.read(loadMoreAddressErrorProvider.notifier).setError(e);
+      if (isFirstError) ref.read(addressErrorProvider.notifier).setError(e);
+      isFirstError = false;
       if (state.hasValue && (state.value?.isNotEmpty ?? false) && e is! SessionExpiredException) return;
     
       state = AsyncError(e, st);
@@ -102,18 +112,4 @@ class AddressNotifier extends AsyncNotifier<List<Address>> {
   }
 
   Future<AddressData> fetchAddress(int page) async => await ref.read(addressRepositoryProvider).getAddress(page: page);
-}
-
-final loadMoreAddressErrorProvider = NotifierProvider<LoadMoreAddressErrorNotifier, Object?>(LoadMoreAddressErrorNotifier.new);
-class LoadMoreAddressErrorNotifier extends Notifier<Object?> {
-  @override
-  Object? build() => null;
-
-  void setError(Object error) {
-    state = error;
-  }
-
-  void clear() {
-    state = null;
-  }
 }

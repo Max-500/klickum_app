@@ -132,7 +132,7 @@ class CartView extends ConsumerWidget {
         
         asyncProducts.when(
           data: (data) => data.isEmpty
-            ? SliverToBoxAdapter(child: NoData())
+            ? SliverToBoxAdapter(child: NoData(msg: 'No hay productos disponibles',))
             : SliverMasonryGrid.count(
                 crossAxisCount: 2,
                 mainAxisSpacing: 16,
@@ -141,8 +141,12 @@ class CartView extends ConsumerWidget {
                 itemBuilder: (context, index) => ProductCard(product: data[index]),
               ),
           error: (error, stackTrace) => SliverToBoxAdapter(child: NoData()),
-          loading: () => const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator())
+          loading: () => SliverMasonryGrid.count(
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childCount: 6,
+            itemBuilder: (context, index) => ProductCardSkeleton(height: index.isEven ? screenHeight * 0.4 : screenHeight * 0.4 + 20)
           )
         ),
 

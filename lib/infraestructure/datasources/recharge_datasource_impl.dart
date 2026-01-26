@@ -14,7 +14,7 @@ class RechargeDatasourceImpl implements RechargeDatasource {
   final baseUrl = '${Enviroment.baseURL}/recharge';
 
   @override
-  Future<RechargeIntent> createIntent({required double amount}) async {
+  Future<RechargeIntent> createIntent({required int amount}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? 'no-token';
 

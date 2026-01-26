@@ -8,6 +8,6 @@ class RechargeRespositoryImpl implements RechargeRepository {
   RechargeRespositoryImpl({required this.datasource});
 
   @override
-  Future<RechargeIntent> createIntent({required double amount}) async => await datasource.createIntent(amount: amount);
+  Future<RechargeIntent> createIntent({required int amount}) async => await datasource.createIntent(amount: amount);
 
 }

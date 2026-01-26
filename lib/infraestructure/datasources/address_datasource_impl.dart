@@ -12,7 +12,10 @@ import 'package:klicum/infraestructure/models/country_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddressDatasourceImpl implements AddressDatasource {
+  final Future<void> Function() onUnauthorized;
   final baseUrl = '${Enviroment.baseURL}/address';
+
+  AddressDatasourceImpl({required this.onUnauthorized});
 
   @override
   Future<CountriesData> getCountries({int page = 1, int limit = 100}) async {
@@ -32,7 +35,10 @@ class AddressDatasourceImpl implements AddressDatasource {
         'Authorization': 'Bearer $token'
       }
     );
-    if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en getAddress');
+    if (response.statusCode == 401) {
+      await onUnauthorized();
+      throw SessionExpiredException(message: 'Sesión Terminada en getAddress');
+    }
     if (response.statusCode != 200) throw Exception('Error al obtener los paises disponibles');
 
     final json = jsonDecode(response.body);
@@ -67,7 +73,10 @@ class AddressDatasourceImpl implements AddressDatasource {
       })
     );
 
-    if (response.statusCode == 401) throw SessionExpiredException(message: 'Sesión Terminada en saveAddress');
+    if (response.statusCode == 401) {
+      await onUnauthorized();
+      throw SessionExpiredException(message: 'Sesión Terminada en saveAddress');
+    }
     if (response.statusCode != 201) throw Exception('Error al guardar la dirección');
 
     final json = jsonDecode(response.body);

@@ -7,7 +7,7 @@ class HomeErrorNotifier extends Notifier<Object?> {
 
   void setError(Object error) => state = error;
   
-  void clear() =>state = null;
+  void clear() => state = null;
 }
 
 final raffleTicketsErrorProvider = NotifierProvider<RaffleTicketsHotifier, Object?>(RaffleTicketsHotifier.new);
@@ -17,5 +17,15 @@ class RaffleTicketsHotifier extends Notifier<Object?> {
 
   void setError(Object error) => state = error;
   
-  void clear() =>state = null;
+  void clear() => state = null;
+}
+
+final addressErrorProvider = NotifierProvider<AddressNotifier, Object?>(AddressNotifier.new);
+class AddressNotifier extends Notifier<Object?> {
+  @override
+  Object? build() => null;
+
+  void setError(Object error) => state = error;
+  
+  void clear() => state = null;
 }

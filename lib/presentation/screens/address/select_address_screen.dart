@@ -1,14 +1,14 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:klicum/config/constants/exceptions.dart';
 import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/domain/entities/address.dart';
 import 'package:klicum/presentation/providers/address_provider.dart';
 import 'package:klicum/presentation/providers/cart_provider.dart';
+import 'package:klicum/presentation/providers/error_providers.dart';
 import 'package:klicum/presentation/providers/repositories/order_repository_provider.dart';
-import 'package:klicum/presentation/widgets/address/address_card.dart';
 import '../../widgets/widgets.dart';
 
 class SelectAddressScreen extends ConsumerStatefulWidget {
@@ -23,6 +23,48 @@ class SelectAddressScreen extends ConsumerStatefulWidget {
 class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
   bool isLoading = false;
   Address? addressSelected;
+
+  final scrollController = ScrollController();
+
+  late final ProviderSubscription _errSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _errSub = ref.listenManual<Object?>(addressErrorProvider, (errorPrev, error) {
+      if (!mounted) return;
+
+      if (error == null || error is SessionExpiredException) return;
+
+      final colors = Theme.of(context).colorScheme;
+      
+      ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+        Helper.getSnackbar(
+          color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
+          isWarning: Helper.isNetworkError(error),
+          text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
+          duration: Helper.isNetworkError(error) ? const Duration(days: 1) : const Duration(seconds: 5)
+        )
+      );
+      ref.read(homeErrorProvider.notifier).clear();
+    });
+
+    scrollController.addListener(() {
+      if (!mounted) return;
+      if (ref.read<Object?>(addressErrorProvider) != null) return;
+      final max = scrollController.position.maxScrollExtent;
+      final offset = scrollController.offset;
+      if (offset >= max - 300) ref.read(addressProvider.notifier).loadMoreAddress();
+    });
+  }
+
+  @override
+  void dispose() {
+    _errSub.close();
+    scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,23 +103,29 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                 Text('Eliga la Dirección de Entrega', style: headLineSmallStyle),
                 Expanded(
                   child: asyncAddress.when(
-                    data: (address) => RefreshIndicator(
+                    data: (address) => address.isEmpty ? NoData(msg: 'No hay direcciones guardadas') : RefreshIndicator(
                       onRefresh: () async {
                         ref.invalidate(addressProvider);
                         await ref.read(addressProvider.future);
                       },
                       child: ListView.separated(
+                        controller: scrollController,
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () => setState(() => addressSelected = address[index]),
                           child: AddressCard(address: address[index], isSelected: addressSelected?.id  == address[index].id)
                         ),
-                        separatorBuilder: (context, index) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemCount: address.length
-                      ),
+                      )
                     ), 
-                    error: (error, stackTrace) => Text(error.toString()), 
-                    loading: () => const CircularProgressIndicator()
+                    error: (error, stackTrace) => NoData(msg: 'Error al cargar las direcciones'), 
+                    loading: () => ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemBuilder: (_, _) => AddressCardSkeleton(), 
+                      separatorBuilder: (_, _) => const SizedBox(height: 10), 
+                      itemCount: 5
+                    )
                   )
                 ),
                 SizedBox(
@@ -95,7 +143,6 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                   child: Button(
                     callback: () async {
                       if (addressSelected == null || isLoading) return;
-
                       try {
                         setState(() => isLoading = true);
                         await ref.read(orderRepositoryProvider).createOrder(variants: cartProducts, addressID: addressSelected!.id);
@@ -110,7 +157,6 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                           duration: const Duration(seconds: 5),
                         ));
                       } catch(error) {
-                        debugPrint(error.toString());
                         if (!mounted) return;
                         ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(Helper.getSnackbar(
                           text: 'Error al realizar la compra',
@@ -119,7 +165,6 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                           color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
                           duration: const Duration(seconds: 5),
                         ));
-
                       } finally {
                         if(mounted) setState(() => isLoading = false);
                       }

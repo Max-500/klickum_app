@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart';
 import 'package:klicum/config/router/app_router.dart';
@@ -19,6 +20,39 @@ class Helper {
 
     return text ?? 'Error, intentalo más tarde';
   }
+
+  static String stripeMsgFrom(StripeException e) {
+    final code = e.error.code;
+
+    if (code == FailureCode.Canceled) {
+      return 'La recarga fue cancelada';
+    }
+
+    final localized = e.error.localizedMessage?.trim();
+    if (localized != null && localized.isNotEmpty) return localized;
+
+    final message = e.error.message?.trim();
+    if (message != null && message.isNotEmpty) return message;
+
+    final stripeCode = (e.error.stripeErrorCode ?? '').toLowerCase();
+    final decline = (e.error.declineCode ?? '').toLowerCase();
+
+    if (stripeCode.contains('insufficient_funds') || decline.contains('insufficient')) return 'Fondos insuficientes. Intenta con otra tarjeta.';
+    
+    if (stripeCode.contains('card_declined')) return 'Tu banco rechazó el pago. Intenta con otra tarjeta o contacta a tu banco.';
+    
+    if (stripeCode.contains('expired_card')) return 'La tarjeta está vencida.';
+    
+    if (stripeCode.contains('incorrect_cvc')) return 'El CVC es incorrecto.';
+    
+    if (stripeCode.contains('processing_error')) return 'Error al procesar el pago. Intenta nuevamente.';
+    
+    if (code == FailureCode.Timeout) return 'La recarga falló por tiempo de espera';
+    if (code == FailureCode.Failed) return 'La recarga falló';
+
+    return 'Error desconocido';
+  }
+
 
   static String normalizeError(dynamic e) {
     final raw = e.toString();

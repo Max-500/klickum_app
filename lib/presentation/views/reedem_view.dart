@@ -11,13 +11,6 @@ class ReedemView extends ConsumerWidget {
 
   ReedemView({super.key});
 
-  SnackBar getSnackbar(Object error, Color color) => Helper.getSnackbar(
-    color: color,
-    isWarning: Helper.isNetworkError(error),
-    text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : Helper.normalizeError(error),
-    duration: Helper.isNetworkError(error) ? const Duration(days: 1) : null,
-  );      
-
   @override
   Widget build(BuildContext context, ref) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -51,17 +44,27 @@ class ReedemView extends ConsumerWidget {
                 await ref.read(couponRepositoryProvider).useCoupon(coupon: controller.text);
                 if (context.mounted) {
                   controller.clear();
-                  ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(Helper.getSnackbar(
-                    color: colors.primary,
-                    isWarning: false,
-                    isSuccess: true,
-                    text: 'Cupón canjeado correctamente',
-                    duration: const Duration(seconds: 3)
-                  ));
+                  ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                    Helper.getSnackbar(
+                      color: colors.primary,
+                      isWarning: false,
+                      isSuccess: true,
+                      text: 'Cupón canjeado correctamente',
+                      duration: const Duration(seconds: 3)
+                    )
+                  );
                 }
               } catch(error) {
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(getSnackbar(error, Helper.isNetworkError(error) ? colors.tertiary : colors.error));
+                ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                  Helper.getSnackbar(
+                    color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
+                    isWarning: Helper.isNetworkError(error),
+                    isSuccess: false,
+                    text: 'Error al canjear el cupón',
+                    duration: const Duration(seconds: 5)
+                  )
+                );
               } finally {
                 isLoading = false;
               }

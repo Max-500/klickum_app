@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:klicum/config/style/app_style.dart';
 
 class InputField extends StatefulWidget {
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? textInputFormatters;
   final bool autoValidateMode;
   final String? Function(String?)? validator;
   final TextEditingController? controller;
@@ -40,6 +42,7 @@ class InputField extends StatefulWidget {
   const InputField({
     super.key, 
     this.keyboardType,
+    this.textInputFormatters,
     required this.autoValidateMode,
     this.validator,
     this.controller,
@@ -98,6 +101,7 @@ class _InputFieldState extends State<InputField> {
       showCursor: widget.showCursor,
       readOnly: widget.readOnly,
       keyboardType: widget.keyboardType,
+      inputFormatters: widget.textInputFormatters,
       autovalidateMode: widget.autoValidateMode ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
       obscureText: _obscure,
       validator: widget.validator,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/presentation/providers/address_provider.dart';
 import '../widgets.dart';
@@ -36,8 +37,12 @@ class CountriesSheet extends ConsumerWidget {
                   
                 Expanded(
                   child: countriesAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, st) => NoData(),
+                    loading: () => ListView.separated(
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemCount: 250,
+                      itemBuilder: (_, _) => InputTileSkeleton()
+                    ),
+                    error: (e, st) => NoData(msg: Helper.isNetworkError(e) ? 'Sin conexión a internet' : Helper.normalizeError(e)),
                     data: (countries) => ListView.separated(
                       separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemCount: countries.length,
