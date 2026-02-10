@@ -13,7 +13,6 @@ class CartView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
 
     final displayMediumStyle = Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
     final displaySmallStyle = Theme.of(context).textTheme.displaySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
@@ -67,15 +66,12 @@ class CartView extends ConsumerWidget {
                       )
                     ),
                     const SizedBox(width: 10),
-                    SizedBox(
-                      width: screenWidth * 0.075,
-                      child: Text(
-                        cartProducts.entries.elementAt(index).value.amount.toString(),
-                        maxLines: 1000,
-                        overflow: TextOverflow.clip,
-                        textAlign: TextAlign.center,
-                        style: bodyMediumStyle,
-                      ),
+                    Text(
+                      cartProducts.entries.elementAt(index).value.amount.toString(),
+                      maxLines: 1000,
+                      overflow: TextOverflow.clip,
+                      textAlign: TextAlign.center,
+                      style: bodyMediumStyle,
                     ),
 
                     const SizedBox(width: 10),

@@ -79,47 +79,49 @@ class ProductCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Button(
-                  callback: product.productStatus == ProductStatus.available ? () {
-                    if (product.variants.isEmpty) return;
-                    if (product.variants.length == 1) {
-                      ref.read(myCartProvider.notifier).addProduct(product.variants.first, product.price, product.name);
-                    } else {
-                      showModalBottomSheet(
-                        context: context, 
-                        isScrollControlled: true,
-                        useRootNavigator: true,
-                        backgroundColor: AppStyle.backgroundColor,
-                        builder: (context) => Padding(
-                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ...product.variants.map((variant) => Column(
-                                children: [
-                                  SizedBox(height: 20),
-                                  InputTile(
-                                    title: variant.size!,
-                                    focusedBorderColor: AppStyle.primaryColor,
-                                    onTap: () {
-                                      ref.read(myCartProvider.notifier).addProduct(variant, product.price, product.name);
-                                      context.pop();
-                                    }
-                                  )
-                                ]
-                              )),
-                              SizedBox(height: MediaQuery.of(context).padding.bottom)
-                            ]
-                          )
-                        ));
-                    }
-                  } : null,
-                  text: product.productStatus == ProductStatus.available ?  'Añadir Carrito' : 'No hay Stock',
-                  style: labelMediumStyle.copyWith(color: product.productStatus == ProductStatus.available ?Colors.black : Colors.white),
-                  backgroundColor: product.productStatus == ProductStatus.available ? null : Color.fromRGBO(123, 35, 17, 1)
-                )
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Button(
+                    callback: product.productStatus == ProductStatus.available ? () {
+                      if (product.variants.isEmpty) return;
+                      if (product.variants.length == 1) {
+                        ref.read(myCartProvider.notifier).addProduct(product.variants.first, product.price, product.name);
+                      } else {
+                        showModalBottomSheet(
+                          context: context, 
+                          isScrollControlled: true,
+                          useRootNavigator: true,
+                          backgroundColor: AppStyle.backgroundColor,
+                          builder: (context) => Padding(
+                            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ...product.variants.map((variant) => Column(
+                                  children: [
+                                    SizedBox(height: 20),
+                                    InputTile(
+                                      title: variant.size!,
+                                      focusedBorderColor: AppStyle.primaryColor,
+                                      onTap: () {
+                                        ref.read(myCartProvider.notifier).addProduct(variant, product.price, product.name);
+                                        context.pop();
+                                      }
+                                    )
+                                  ]
+                                )),
+                                SizedBox(height: MediaQuery.of(context).padding.bottom)
+                              ]
+                            )
+                          ));
+                      }
+                    } : null,
+                    text: product.productStatus == ProductStatus.available ?  'Añadir' : 'No hay Stock',
+                    style: labelMediumStyle.copyWith(color: product.productStatus == ProductStatus.available ?Colors.black : Colors.white),
+                    backgroundColor: product.productStatus == ProductStatus.available ? null : Color.fromRGBO(123, 35, 17, 1)
+                  )
+                ),
               )
             ]
           ),

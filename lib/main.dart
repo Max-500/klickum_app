@@ -28,10 +28,11 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    ref.listen<AuthStatus>(authProvider, (prev, next) {
+    ref.listen<AuthStatus>(authProvider, (prev, next) async {
       if (next == AuthStatus.unauthenticated && prev != AuthStatus.unauthenticated) {
         ref.invalidate(raffleProvider);
         ref.invalidate(productProvider);
+        await ref.read(raffleProvider.future);
         WidgetsBinding.instance.addPostFrameCallback((_) => Helper.handleTokenExpired());
       }
     });

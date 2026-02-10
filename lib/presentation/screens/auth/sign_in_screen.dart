@@ -12,10 +12,6 @@ class SignInScreen extends ConsumerWidget {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
-  final _formKey = GlobalKey<FormState>();
-
-  bool _autoValidate = false;
-
   SignInScreen({super.key});
 
   @override
@@ -64,98 +60,65 @@ class SignInScreen extends ConsumerWidget {
               top: screenHeight * 0.3,
               child: Container(
                 constraints: BoxConstraints(maxWidth: screenWidth * 0.8),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      InputField(
-                        controller: usernameController,
-                        keyboardType: TextInputType.text,
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-
-                          if (text.isEmpty) return 'Este campo es obligatorio';
-
-                          if (text.length < 8) return 'Minimo 8 caracteres';
-
-                          if (text.length > 15) return 'Maximo 15 caracteres';
-
-                          if (double.tryParse(text) != null) return 'Este campo no se puede componer por puros números';
-
-                          if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(text)) return 'Solo se permiten letras, números y _';
-
-                          return null;
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    InputField(
+                      controller: usernameController,
+                      keyboardType: TextInputType.text,
+                      autoValidateMode: false, 
+                      labelText: 'Usuario '
+                    ),
+                    const SizedBox(height: 20),
+                        
+                    InputField(
+                      controller: passwordController,
+                      isPassword: true,
+                      keyboardType: TextInputType.visiblePassword,
+                      autoValidateMode: false, 
+                      labelText: 'Contraseña '
+                    ),
+                    const SizedBox(height: 40),
+                
+                    SizedBox(
+                      width: double.infinity,
+                      height: screenHeight * 0.05,
+                      child: Button(
+                        callback: () async {
+                          try {
+                            FocusScope.of(context).unfocus();
+                            await ref.read(authRepositoryProvider).signIn(
+                              username: usernameController.text.trim(), 
+                              password: passwordController.text.trim()
+                            );
+                            if (context.mounted) context.go('/');
+                          }  catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                              Helper.getSnackbar(
+                                text: Helper.normalizeError(e), 
+                                isWarning: Helper.isNetworkError(e),
+                                color: colors.error,
+                                style: label.copyWith(color: Colors.white)
+                              )
+                            );
+                          }
+                
                         },
-                        autoValidateMode: _autoValidate, 
-                        labelText: 'Usuario '
-                      ),
-                      const SizedBox(height: 20),
-        
-                      InputField(
-                        controller: passwordController,
-                        isPassword: true,
-                        keyboardType: TextInputType.visiblePassword,
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-
-                          if (text.length < 8) return 'Debe tener al menos 8 caracteres';
-                          if (!RegExp(r'[A-Z]').hasMatch(text)) return 'Debe incluir al menos una letra mayúscula';
-                          if (!RegExp(r'[a-z]').hasMatch(text)) return 'Debe incluir al menos una letra minúscula';
-                          if (!RegExp(r'\d').hasMatch(text)) return 'Debe incluir al menos un número';
-                          //* Opcional
-                          if (!RegExp(r'[!@#\$&*~_\-]').hasMatch(text)) return 'Debe incluir al menos un símbolo (!@#\$&*~_- )';
-                          
-                          return null;
-                        },
-                        autoValidateMode: _autoValidate, 
-                        labelText: 'Contraseña '
-                      ),
-                      const SizedBox(height: 40),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: screenHeight * 0.05,
-                        child: Button(
-                          callback: () async {
-                            try {
-                              FocusScope.of(context).unfocus();
-                              _autoValidate = true;
-                              if (_formKey.currentState!.validate()) {
-                                await ref.read(authRepositoryProvider).signIn(
-                                  username: usernameController.text.trim(), 
-                                  password: passwordController.text.trim()
-                                );
-
-                                if (context.mounted) context.go('/');
-                              }
-                            }  catch (e) {
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
-                                Helper.getSnackbar(
-                                  text: Helper.normalizeError(e), 
-                                  isWarning: Helper.isNetworkError(e),
-                                  color: colors.error,
-                                  style: label.copyWith(color: Colors.white)
-                                )
-                              );
-                            }
-
-                          },
-                          text: 'Iniciar Sesión', 
-                          style: label.copyWith(fontWeight: FontWeight.bold)
-                        )
-                      ),
-                      const SizedBox(height: 10),
-        
-                      ActionText(
-                        prefix: '¿No tienes una cuenta?', 
-                        action: 'Registrate', 
-                        onActionTap: () => context.push('/sign-up')
+                        text: 'Iniciar Sesión', 
+                        style: label.copyWith(fontWeight: FontWeight.bold)
                       )
-                    ]
-                  )
+                    ),
+                    
+                    const SizedBox(height: 10),
+                        
+                    ActionText(
+                      prefix: '¿No tienes una cuenta?', 
+                      action: 'Registrate', 
+                      onActionTap: () => context.push('/sign-up')
+                    )
+                  ]
                 )
               )
             )

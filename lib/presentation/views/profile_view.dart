@@ -9,6 +9,7 @@ import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/presentation/providers/order_provider.dart';
 import 'package:klicum/presentation/providers/raffles_provider.dart';
+import 'package:klicum/presentation/providers/repositories/auth_repository_provider.dart';
 import 'package:klicum/presentation/providers/repositories/recharge_repository_provider.dart';
 import 'package:klicum/presentation/providers/user_provider.dart';
 import 'package:klicum/presentation/widgets/widgets.dart';
@@ -24,6 +25,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   final scrollControllerRaffles = ScrollController();
   final scrollControllerOrders = ScrollController();
   final amountController = TextEditingController();
+
+  final currentController = TextEditingController();
+  final nextController = TextEditingController();
+  final confirmController = TextEditingController();
+
 
   @override
   void initState() {
@@ -52,7 +58,168 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     scrollControllerRaffles.dispose();
     scrollControllerOrders.dispose();
     amountController.dispose();
+    currentController.dispose();
+    nextController.dispose();
+    confirmController.dispose();
     super.dispose();
+  }
+
+  Future<({String current, String next})?> openChangePasswordSheet({
+    required BuildContext context,
+    required double screenWidth,
+    required TextStyle buttonTextStyle,
+  }) async {
+    final formKey = GlobalKey<FormState>();
+    AutovalidateMode autoValidate = AutovalidateMode.disabled;
+
+    final result = await showModalBottomSheet<({String current, String next})>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppStyle.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return SafeArea(
+              top: false,
+              child: AnimatedPadding(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                padding: EdgeInsets.only(
+                  left: screenWidth * 0.05,
+                  right: screenWidth * 0.05,
+                  top: 12,
+                  bottom: MediaQuery.of(ctx).viewInsets.bottom + 12,
+                ),
+                child: Form(
+                  key: formKey,
+                  autovalidateMode: autoValidate,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 14),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white24,
+                          ),
+                        ),
+                      ),
+
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Cambiar contraseña',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Contraseña actual
+                      InputField(
+                        controller: currentController,
+                        isPassword: true,
+                        keyboardType: TextInputType.visiblePassword,
+                        labelText: 'Contraseña actual',
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) return 'Ingresa tu contraseña actual';
+                          return null;
+                        },
+                        autoValidateMode: autoValidate == AutovalidateMode.always,
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Nueva contraseña (tu validación)
+                      InputField(
+                        controller: nextController,
+                        isPassword: true,
+                        keyboardType: TextInputType.visiblePassword,
+                        labelText: 'Nueva contraseña',
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+
+                          if (text.length < 8) return 'Debe tener al menos 8 caracteres';
+                          if (!RegExp(r'[A-Z]').hasMatch(text)) return 'Debe incluir al menos una letra mayúscula';
+                          if (!RegExp(r'[a-z]').hasMatch(text)) return 'Debe incluir al menos una letra minúscula';
+                          if (!RegExp(r'\d').hasMatch(text)) return 'Debe incluir al menos un número';
+                          if (!RegExp(r'[!@#\$&*~_\-]').hasMatch(text)) {
+                            return 'Debe incluir al menos un símbolo (!@#\$&*~_- )';
+                          }
+                          return null;
+                        },
+                        autoValidateMode: autoValidate == AutovalidateMode.always,
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Confirmar nueva
+                      InputField(
+                        controller: confirmController,
+                        isPassword: true,
+                        keyboardType: TextInputType.visiblePassword,
+                        labelText: 'Confirmar nueva contraseña',
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) return 'Confirma tu nueva contraseña';
+                          if (text != nextController.text.trim()) return 'No coincide con la nueva contraseña';
+                          return null;
+                        },
+                        autoValidateMode: autoValidate == AutovalidateMode.always,
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: Button(
+                          text: 'Guardar cambios',
+                          style: buttonTextStyle.copyWith(color: Colors.black, fontWeight: FontWeight.bold),
+                          callback: () {
+                            final ok = formKey.currentState?.validate() ?? false;
+                            if (!ok) {
+                              setState(() => autoValidate = AutovalidateMode.always);
+                              return;
+                            }
+
+                            Navigator.pop(ctx, (
+                              current: currentController.text.trim(),
+                              next: nextController.text.trim(),
+                            ));
+                          }
+                        )
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: Button(
+                          callback: () => Navigator.pop(ctx),
+                          text: 'Cancelar',
+                          style: buttonTextStyle.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                          backgroundColor: Colors.white.withValues(alpha: 0.1),
+                          borderColor: Colors.white.withValues(alpha: 0.15)
+                        )
+                      ),
+
+                      const SizedBox(height: 8),
+                    ]
+                  )
+                )
+              )
+            );
+          }
+        );
+      },
+    );
+    return result;
   }
 
   @override
@@ -299,8 +466,46 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         icon: Icons.lock_rounded,
                         title: "Cambiar Contraseña",
                         subtitle: "Actualiza tu contraseña de forma segura",
-                        onTap: () {}
+                        onTap: () async {
+                          try {
+                            final data = await openChangePasswordSheet(
+                              context: context,
+                              screenWidth: screenWidth,
+                              buttonTextStyle: bodyMediumStyle,
+                            );
+
+                            if (data == null) return;
+
+                            await ref.read(authRepositoryProvider).changePassword(
+                              currentPassword: data.current,
+                              newPassword: data.next
+                            );
+
+                            if (!mounted) return;
+
+                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                              Helper.getSnackbar(
+                                color: colors.primary,
+                                isSuccess: true,
+                                isWarning: false,
+                                text: 'Contraseña Actualizada Correctamente',
+                                duration: const Duration(seconds: 5)
+                              )
+                            );
+                          } catch (error) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                              Helper.getSnackbar(
+                                color: Helper.isNetworkError(error) ? colors.tertiary : colors.error,
+                                isWarning: Helper.isNetworkError(error),
+                                text: Helper.isNetworkError(error) ? 'Sin conexion a internet' : 'Error al actualizar la contraseña',
+                                duration: const Duration(seconds: 5)
+                              )
+                            );
+                          }
+                        },
                       )
+
                     ]
                   )
                 ),
@@ -347,7 +552,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
       
           asyncOrders.when(
-            data: (orders) => SliverList(
+            data: (orders) => orders.isEmpty ? SliverToBoxAdapter(child: NoData(msg: 'Aun no has comprado nada')) : SliverList(
               delegate: SliverChildBuilderDelegate(
                 (_, index) => MyOrderCard(order: orders[index]),
                 childCount: orders.length,

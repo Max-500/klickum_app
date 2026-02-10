@@ -15,5 +15,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserAuth> getMe() async => await datasource.getMe();
+  
+  @override
+  Future<void> changePassword({required String currentPassword, required String newPassword}) async => await datasource.changePassword(currentPassword: currentPassword, newPassword: newPassword);
 
 }

@@ -83,4 +83,34 @@ class AuthDatasourceImpl implements AuthDatasource {
     final userAuthResponse = UserAuthResponse.fromJson(json);
     return UserAuthMapper.userAuthResponseToEntity(userAuthResponse);
   }
+  
+  @override
+  Future<void> changePassword({required String currentPassword, required String newPassword}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? 'no-token';
+
+    final url = Uri.parse('$baseURL/me/password');
+    print(url);
+    print(currentPassword);
+    print(newPassword);
+    final response = await http.patch(
+      url, 
+      headers: {
+        'Content-Type': 'application/json', 
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+        "currentPassword": currentPassword,
+        "password": newPassword
+      })
+    );
+    
+    final raw = utf8.decode(response.bodyBytes).trim();
+    final json = raw.isNotEmpty ? jsonDecode(raw) : null;
+
+    if (response.statusCode != 200) {
+      await onUnauthorized();
+      throw Exception(Helper.extractErrorMessage(json, 'Algo sucedio mal, intentalo mas tarde'));
+    }
+  }
 }
