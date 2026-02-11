@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/config/constants/types.dart';
 import 'package:klicum/config/style/app_style.dart';
+import 'package:klicum/domain/entities/presentation/cart_product.dart';
 import 'package:klicum/domain/entities/product.dart';
 import 'package:klicum/presentation/providers/cart_provider.dart';
 import 'package:klicum/presentation/providers/repositories/cart_repository_provider.dart';
@@ -90,6 +91,12 @@ class ProductCard extends ConsumerWidget {
                     callback: product.productStatus == ProductStatus.available ? () async {
                       try {
                         if (product.variants.isEmpty) return;
+                        if (product.productType == ProductType.digital) {
+                          context.push('/select-address', extra: {
+                            product.variants.first.id: CartProduct(name: product.name, amount: 1, variant: product.variants.first, price: product.price)
+                          });
+                          return;
+                        }
                         if (product.variants.length == 1) {
                           await ref.read(cartRepositoryProvider).addVariant(productVariantID: product.variants.first.id, amount: 1);
                           if (context.mounted) ref.read(myCartProvider.notifier).addProduct(product.variants.first, product.price, product.name);

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:klicum/config/constants/exceptions.dart';
 import 'package:klicum/config/constants/helper.dart';
 import 'package:klicum/domain/entities/address.dart';
+import 'package:klicum/domain/entities/presentation/cart_product.dart';
 import 'package:klicum/presentation/providers/address_provider.dart';
 import 'package:klicum/presentation/providers/cart_provider.dart';
 import 'package:klicum/presentation/providers/error_providers.dart';
@@ -13,8 +14,9 @@ import '../../widgets/widgets.dart';
 
 class SelectAddressScreen extends ConsumerStatefulWidget {
   final bool isFromCart;
+  final Map<int, CartProduct>? digitalProduct;
 
-  const SelectAddressScreen({super.key, required this.isFromCart});
+  const SelectAddressScreen({super.key, required this.isFromCart, this.digitalProduct});
 
   @override
   ConsumerState<SelectAddressScreen> createState() => _SelectAddressScreenState();
@@ -137,7 +139,7 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                   )
                 ),
                 const SizedBox(height: 10),
-                widget.isFromCart ? SizedBox(
+                widget.isFromCart || widget.digitalProduct != null ? SizedBox(
                   width: double.infinity,
                   height: screenHeight * 0.05,
                   child: Button(
@@ -145,7 +147,11 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                       if (addressSelected == null || isLoading) return;
                       try {
                         setState(() => isLoading = true);
-                        await ref.read(orderRepositoryProvider).createOrder(variants: cartProducts, addressID: addressSelected!.id);
+                        if (widget.digitalProduct != null) {
+                          await ref.read(orderRepositoryProvider).createOrder(variants: widget.digitalProduct!, addressID: addressSelected!.id);
+                        } else {
+                          await ref.read(orderRepositoryProvider).createOrder(variants: cartProducts, addressID: addressSelected!.id);
+                        }
                         if (!mounted) return;
                         ref.read(myCartProvider).clear();
                         context.pop();

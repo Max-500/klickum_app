@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:klicum/domain/entities/order.dart';
+import 'package:klicum/domain/entities/presentation/cart_product.dart';
 import 'package:klicum/domain/entities/raffle.dart';
 import 'package:klicum/presentation/screens/address/select_address_screen.dart';
 import 'package:klicum/presentation/screens/orders/order_screen.dart';
@@ -34,7 +35,7 @@ GoRouter getRouter(bool isAuth) => GoRouter(
     GoRoute(path: SignInScreen.name, pageBuilder: (context, state) => _buildFadePage(state, SignInScreen())),
     GoRoute(path: SignUpScreen.name,  pageBuilder: (context, state) => _buildFadePage(state, SignUpScreen())),
     GoRoute(path: '/raffle', pageBuilder: (context, state) => _buildFadePage(state, RaffeScreen(raffle: state.extra as Raffle))),
-    GoRoute(path: '/select-address', pageBuilder: (context, state) => _buildFadePage(state, SelectAddressScreen(isFromCart: state.extra as bool))),
+    GoRoute(path: '/select-address', pageBuilder: (context, state) => _buildFadePage(state, SelectAddressScreen(isFromCart: state.extra is bool, digitalProduct: state.extra is Map<int, CartProduct> ? state.extra as Map<int, CartProduct> : null))),
     GoRoute(path: CreateAddressScreen.name, pageBuilder: (context, state) => _buildFadePage(state, CreateAddressScreen())),
     GoRoute(path: '/order', pageBuilder: (context, state) => _buildFadePage(state, OrderScreen(order: state.extra as Order))),
     StatefulShellRoute.indexedStack(
