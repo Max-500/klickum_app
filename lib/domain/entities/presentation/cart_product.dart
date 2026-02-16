@@ -1,17 +1,18 @@
 import 'package:klicum/domain/entities/variant.dart';
 
 class CartProduct {
+  final String id;
   final String name;
   final int amount;
   final double price;
   final Variant variant;
   
 
-  CartProduct({ required this.name, required this.amount, required this.variant, required this.price });
+  CartProduct({ required this.name, required this.amount, required this.variant, required this.price, required this.id });
 
   CartProduct copyWith({
-    int? amount, Variant? variant, double? price, String? name
-  }) => CartProduct(amount: amount ?? this.amount, variant: variant ?? this.variant, price: price ?? this.price, name: name ?? this.name);
+    int? amount, Variant? variant, double? price, String? name, String? id
+  }) => CartProduct(amount: amount ?? this.amount, variant: variant ?? this.variant, price: price ?? this.price, name: name ?? this.name, id: id ?? this.id);
 
   Map<String, dynamic> toJson() => {
     "productVariantId": variant.id,

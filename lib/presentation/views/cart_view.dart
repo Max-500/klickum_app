@@ -26,9 +26,12 @@ class CartView extends ConsumerWidget {
     final cartProducts = ref.watch(myCartProvider);
     final asyncProducts = ref.watch(productProvider);
 
-    final total = cartProducts.values.fold<double>(
-      0.0,
-      (sum, item) => sum + item.amount * item.price,
+    final total = cartProducts.maybeWhen(
+      data: (cartProducts) => cartProducts.values.fold<double>(
+        0.0,
+        (sum, item) => sum + item.amount * item.price,
+      ),
+      orElse: () => 0.0
     );
 
     return CustomScrollView(
@@ -43,53 +46,60 @@ class CartView extends ConsumerWidget {
           )
         ),
 
-        SliverList.builder(
-          itemBuilder: (context, index) => Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text('${cartProducts.entries.elementAt(index).value.name} (${cartProducts.entries.elementAt(index).value.price.toStringAsFixed(2)}€) ${cartProducts.entries.elementAt(index).value.variant.size}', style: bodyMediumStyle)
-              ),
-              Expanded(
-                flex: 2,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      onPressed: () => ref.read(myCartProvider.notifier).decrement(cartProducts.entries.elementAt(index).value.variant.id), 
-                      icon: Icon(Icons.remove),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: const CircleBorder()
-                      )
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      cartProducts.entries.elementAt(index).value.amount.toString(),
-                      maxLines: 1000,
-                      overflow: TextOverflow.clip,
-                      textAlign: TextAlign.center,
-                      style: bodyMediumStyle,
-                    ),
+        cartProducts.when(
+          data: (data) => SliverList.builder(
+            itemBuilder: (context, index) => Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text('${data.entries.elementAt(index).value.name} (${data.entries.elementAt(index).value.price.toStringAsFixed(2)}€) ${data.entries.elementAt(index).value.variant.size}', style: bodyMediumStyle)
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        onPressed: () async => await ref.read(myCartProvider.notifier).decrement(data.entries.elementAt(index).value.variant.id, data.entries.elementAt(index).value.id), 
+                        icon: Icon(Icons.remove),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: const CircleBorder()
+                        )
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        data.entries.elementAt(index).value.amount.toString(),
+                        maxLines: 1000,
+                        overflow: TextOverflow.clip,
+                        textAlign: TextAlign.center,
+                        style: bodyMediumStyle,
+                      ),
 
-                    const SizedBox(width: 10),
-                    IconButton(
-                      onPressed: () => ref.read(myCartProvider.notifier).addProduct(cartProducts.entries.elementAt(index).value.variant, null, null), 
-                      icon: Icon(Icons.add),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: const CircleBorder()
+                      const SizedBox(width: 10),
+                      IconButton(
+                        onPressed: () async {
+                          if (data.entries.elementAt(index).value.amount >= data.entries.elementAt(index).value.variant.amount) return;
+                          await ref.read(myCartProvider.notifier).increment(data.entries.elementAt(index).value.variant.id);
+                        }, 
+                        icon: Icon(Icons.add),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: const CircleBorder()
+                        )
                       )
-                    )
-                  ]
+                    ]
+                  )
                 )
-              )
-            ],
-          ),
-          itemCount: cartProducts.length,
+              ],
+            ),
+            itemCount: data.length,
+          ), 
+          error: (error, stackTrace) => SliverToBoxAdapter(child: NoData(msg: 'Error al cargar el carrito')), 
+          loading: () => SliverToBoxAdapter(),
         ),
 
         SliverToBoxAdapter(
@@ -112,8 +122,9 @@ class CartView extends ConsumerWidget {
                 height: screenHeight * 0.05,
                 width: double.infinity,
                 child: Button(
-                  callback: () {
-                    if (cartProducts.isNotEmpty) context.push('/select-address', extra: true);
+                  callback: () async {
+                    final data = await ref.read(myCartProvider.future);
+                    if (data.isNotEmpty && context.mounted) context.push('/select-address', extra: true);
                   },
                   text: 'Realizar Pedido', 
                   style: labelLargeStyle

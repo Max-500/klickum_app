@@ -76,7 +76,6 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
     final headLineSmallStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white) ?? const TextStyle(color: Colors.white);
     
     final asyncAddress = ref.watch(addressProvider);
-    final cartProducts = ref.watch(myCartProvider);
 
     final colors = Theme.of(context).colorScheme;
 
@@ -150,10 +149,12 @@ class _SelectAddressScreenState extends ConsumerState<SelectAddressScreen> {
                         if (widget.digitalProduct != null) {
                           await ref.read(orderRepositoryProvider).createOrder(variants: widget.digitalProduct!, addressID: addressSelected!.id);
                         } else {
-                          await ref.read(orderRepositoryProvider).createOrder(variants: cartProducts, addressID: addressSelected!.id);
+                          final data = await ref.read(myCartProvider.future);
+                          if (mounted) await ref.read(orderRepositoryProvider).createOrder(variants: data, addressID: addressSelected!.id);
                         }
                         if (!mounted) return;
-                        ref.read(myCartProvider).clear();
+                        await ref.read(myCartProvider.notifier).clear();
+                        if (!mounted) return;
                         context.pop();
                         ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(Helper.getSnackbar(
                           text: 'Compra realizada correctamente',

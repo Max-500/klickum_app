@@ -6,7 +6,6 @@ import 'package:klicum/config/constants/types.dart';
 import 'package:klicum/config/style/app_style.dart';
 import 'package:klicum/domain/entities/presentation/cart_product.dart';
 import 'package:klicum/domain/entities/product.dart';
-import 'package:klicum/presentation/providers/cart_provider.dart';
 import 'package:klicum/presentation/providers/repositories/cart_repository_provider.dart';
 import '../widgets.dart';
 
@@ -93,13 +92,24 @@ class ProductCard extends ConsumerWidget {
                         if (product.variants.isEmpty) return;
                         if (product.productType == ProductType.digital) {
                           context.push('/select-address', extra: {
-                            product.variants.first.id: CartProduct(name: product.name, amount: 1, variant: product.variants.first, price: product.price)
+                            product.variants.first.id: CartProduct(name: product.name, amount: 1, variant: product.variants.first, price: product.price, id: '')
                           });
                           return;
                         }
                         if (product.variants.length == 1) {
+                          if (product.variants.first.amount <= 0) {
+                            ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                              Helper.getSnackbar(
+                                color: colors.tertiary,
+                                isWarning: true,
+                                isSuccess: false,
+                                text: 'Actualmente el producto no tiene existencia en Stock',
+                                duration: const Duration(seconds: 5)
+                              )
+                            );
+                            return;
+                          }
                           await ref.read(cartRepositoryProvider).addVariant(productVariantID: product.variants.first.id, amount: 1);
-                          if (context.mounted) ref.read(myCartProvider.notifier).addProduct(product.variants.first, product.price, product.name);
                         } else {
                           showModalBottomSheet(
                             context: context, 
@@ -119,8 +129,19 @@ class ProductCard extends ConsumerWidget {
                                         focusedBorderColor: AppStyle.primaryColor,
                                         onTap: () async {
                                           try {
+                                            if (variant.amount <= 0) {
+                                              ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                                                Helper.getSnackbar(
+                                                  color: colors.tertiary,
+                                                  isWarning: true,
+                                                  isSuccess: false,
+                                                  text: 'Actualmente el producto no tiene existencia en Stock',
+                                                  duration: const Duration(seconds: 5)
+                                                )
+                                              );
+                                              return;
+                                            }
                                             await ref.read(cartRepositoryProvider).addVariant(productVariantID: product.variants.first.id, amount: 1);
-                                            ref.read(myCartProvider.notifier).addProduct(variant, product.price, product.name);
                                             if (context.mounted) context.pop();
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(

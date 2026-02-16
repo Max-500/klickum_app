@@ -90,9 +90,6 @@ class AuthDatasourceImpl implements AuthDatasource {
     final token = prefs.getString('access_token') ?? 'no-token';
 
     final url = Uri.parse('$baseURL/me/password');
-    print(url);
-    print(currentPassword);
-    print(newPassword);
     final response = await http.patch(
       url, 
       headers: {
